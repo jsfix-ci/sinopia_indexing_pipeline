@@ -1,0 +1,46 @@
+version: "3"
+services:
+  broker:
+    image: rmohr/activemq
+    ports:
+      - 61616:61616
+      - 61613:61613
+      - 8161:8161
+  platform:
+    image: ld4p/trellis-ext-db:latest
+    ports:
+      - 8080:8080
+      - 8081:8081
+    depends_on:
+      - database
+      - broker
+      - migration
+  pipeline:
+    build:
+      context: .
+    environment:
+      INDEX_HOST: search
+      BROKER_HOST: broker
+    command: dockerize -wait tcp://broker:61613 -wait tcp://search:9200 -timeout 120s npm start
+    depends_on:
+      - broker
+      - search
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: sinopia
+      POSTGRES_DB: sinopia
+      POSTGRES_PASSWORD: S1n0p1a
+      PGDATA: /var/lib/postgresql/data/pgdata/mydata
+    ports:
+      - 5432:5432
+  search:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+    ports:
+      - 9200:9200
+      - 9300:9300
+  migration:
+    image: ld4p/trellis-ext-db:latest
+    command: ["/opt/trellis/bin/trellis-db", "db", "migrate", "/opt/trellis/etc/config.yml"]
+    depends_on:
+      - database

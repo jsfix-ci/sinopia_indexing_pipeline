@@ -1,0 +1,68 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+
+defaults: &defaults
+  docker:
+    - image: circleci/node:10.11-browsers
+  working_directory: ~/sinopia_indexing_pipeline
+
+version: 2
+jobs:
+  build:
+    <<: *defaults
+    environment:
+      CC_TEST_REPORTER_ID: df07c492e87437bdb4127915ce554fd0b601e9111d66119ebfaa73eba57d5cf4
+    steps:
+      - checkout
+      - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - restore_cache:
+          keys:
+            - dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - dependencies-
+      - run: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: dependencies-{{ checksum "package.json" }}
+      - run:
+          name: Run tests
+          command: |
+            ./cc-test-reporter before-build
+            npm run ci
+            ./cc-test-reporter after-build --exit-code $?
+  register_image:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          key: dependencies-{{ checksum "package.json" }}
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build & push docker image
+          # NOTE: the env variables holding docker credentials are stored in the CircleCI dashboard
+          command: |
+            docker build -t ld4p/sinopia_indexing_pipeline:latest .
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push ld4p/sinopia_indexing_pipeline:latest
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+      - register_image:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master

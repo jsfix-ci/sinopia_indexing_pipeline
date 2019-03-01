@@ -1,0 +1,5 @@
+# NPM deps
+node_modules
+
+# Test coverage
+coverage
