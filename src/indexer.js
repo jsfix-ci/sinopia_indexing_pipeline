@@ -20,6 +20,7 @@ export default class Indexer {
     return this.client.index({
       index: Config.indexName,
       type: Config.indexType,
+      id: json['@id'],
       body: json
     }).then(indexResponse => {
       if (indexResponse.result != 'created') {
