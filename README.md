@@ -29,10 +29,8 @@ $ docker-compose down
 To create a Trellis resource and test integration between the pipeline components, you may do so using a curl incantation like follows:
 
 ```shell
-curl -i -X POST -H 'Content-Type: text/turtle; charset=UTF-8' -H 'Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' -H "Slug: $(uuidgen)" -d "@prefix dcterms: <http://purl.org/dc/terms/> .\n@prefix ldp: <http://www.w3.org/ns/ldp#> .\n<> a ldp:Container, ldp:BasicContainer;\n dcterms:title 'A cool resource' ." http://platform:8080
+curl -i -X POST -H 'Content-Type: text/turtle; charset=UTF-8' -H 'Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' -H "Slug: $(uuidgen)" -d "@prefix dcterms: <http://purl.org/dc/terms/> .\n@prefix ldp: <http://www.w3.org/ns/ldp#> .\n<> a ldp:Container, ldp:BasicContainer;\n dcterms:title 'A cool resource' ." http://localhost:8080
 ```
-
-Note that the above example assumes that your host has an alias from `platform` (the name of Trellis host running within docker-compose) to `localhost` (in e.g., `/etc/hosts`). If you use `localhost:8080` instead, the pipeline won't be able to retrieve the resource from Trellis.
 
 ## Development
 
@@ -49,10 +47,6 @@ npm run dev-start
 ```
 
 Note that if you want to view the ElasticSearch index, you can browse to http://localhost:1358/.
-
-### Create a Trellis resource (dev)
-
-See the same section under `Testing` above, but note that you won't need to create the `platform` alias when running in dev, so your `curl` command can hit `localhost:8080`.
 
 ## Build and push image
 

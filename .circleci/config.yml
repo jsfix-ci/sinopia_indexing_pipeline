@@ -16,27 +16,36 @@ jobs:
       CC_TEST_REPORTER_ID: df07c492e87437bdb4127915ce554fd0b601e9111d66119ebfaa73eba57d5cf4
     steps:
       - checkout
-      - run:
-          name: Setup Code Climate test-reporter
-          command: |
-            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-            chmod +x ./cc-test-reporter
+      - setup_remote_docker
       - restore_cache:
           keys:
             - dependencies-{{ checksum "package.json" }}
             # fallback to using the latest cache if no exact match is found
             - dependencies-
-      - run: npm install
+      - run:
+          name: Install dependencies
+          command: npm install
       - save_cache:
           paths:
             - node_modules
           key: dependencies-{{ checksum "package.json" }}
       - run:
-          name: Run tests
+          name: Spin up containers for integration testing
+          command: docker-compose up -d pipeline platform
+      - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - run:
+          name: Lint and run unit tests
           command: |
             ./cc-test-reporter before-build
             npm run ci
             ./cc-test-reporter after-build --exit-code $?
+      - run:
+          name: Run integration tests
+          command: docker-compose up integration
   register_image:
     <<: *defaults
     steps:
