@@ -39,7 +39,7 @@ Note that the above example assumes that your host has an alias from `platform` 
 For development purposes, you may wish to spin up all the components other than the pipeline if you'll be iterating:
 
 ```shell
-$ docker-compose up -d platform search
+$ docker-compose up -d platform search searchui
 ```
 
 And then spin up the pipeline using:
@@ -47,6 +47,8 @@ And then spin up the pipeline using:
 ```shell
 npm run dev-start
 ```
+
+Note that if you want to view the ElasticSearch index, you can browse to http://localhost:1358/.
 
 ### Create a Trellis resource (dev)
 
