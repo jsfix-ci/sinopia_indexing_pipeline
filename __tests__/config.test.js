@@ -4,6 +4,9 @@ const OLD_ENV = process.env
 
 describe('Config', () => {
   describe('with default values', () => {
+    test('platformUrl has default value', () => {
+      expect(Config.platformUrl).toEqual('http://platform:8080')
+    })
     test('brokerHost has default value', () => {
       expect(Config.brokerHost).toEqual('localhost')
     })
@@ -36,6 +39,7 @@ describe('Config', () => {
     // Strategy for stubbing `process.env`: https://stackoverflow.com/a/48042799
     beforeEach(() => {
       process.env = {
+        TRELLIS_BASE_URL: 'https://ldp.example.edu',
         BROKER_HOST: 'myhost',
         BROKER_PORT: 61616,
         QUEUE_NAME: '/topic/foobar',
@@ -49,6 +53,9 @@ describe('Config', () => {
     })
     afterEach(() => {
       process.env = OLD_ENV
+    })
+    test('platformUrl has overridden value', () => {
+      expect(Config.platformUrl).toEqual('https://ldp.example.edu')
     })
     test('brokerHost has overridden value', () => {
       expect(Config.brokerHost).toEqual('myhost')

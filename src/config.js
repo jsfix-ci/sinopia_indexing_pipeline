@@ -1,4 +1,8 @@
 export default class Config {
+  static get platformUrl() {
+    return process.env.TRELLIS_BASE_URL || 'http://platform:8080'
+  }
+
   static get brokerHost() {
     return process.env.BROKER_HOST || 'localhost'
   }

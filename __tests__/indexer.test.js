@@ -20,7 +20,7 @@ describe('Indexer', () => {
   describe('index()', () => {
     let clientMock = new IndexerSuccessFake()
     let indexSpy = jest.spyOn(clientMock, 'index')
-    let json = JSON.stringify({ foo: 'bar' })
+    let json = { '@id': '12345', foo: 'bar' }
 
     beforeEach(() => {
       indexer.client = clientMock
@@ -30,6 +30,7 @@ describe('Indexer', () => {
       expect(indexSpy).toHaveBeenCalledWith({
         index: Config.indexName,
         type: Config.indexType,
+        id: '12345',
         body: json
       })
     })

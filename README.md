@@ -15,7 +15,7 @@ This is the repository for the Sinopia Indexing Pipeline. The pipeline is a Node
 Using `docker-compose`, you can spin up containers for Trellis, ActiveMQ, ElasticSearch, Postgres, and the pipeline::
 
 ```shell
-$ docker-compose up -d
+$ docker-compose up -d pipeline
 ```
 
 To shut it down and clean up, run:
@@ -24,22 +24,47 @@ To shut it down and clean up, run:
 $ docker-compose down
 ```
 
+### Run the linter and tests
+
+```shell
+$ npm run ci
+```
+
+Or, to run the linter and unit tests separately:
+
+```shell
+$ npm run lint
+$ npm test
+```
+
+To run the integration tests, they must be invoked independent of the unit tests:
+
+```shell
+$ npm run integration
+```
+
+### Continuous Integration
+
+We are using CircleCI to run continuous integration. CircleCI invokes the integration tests using a container, which works around inter-container networking constraints in the CI environment. If you prefer to run integration tests in a manner that more closely matches what runs in CI, you can do that via:
+
+```shell
+$ docker-compose up integration
+```
+
 ### Create a Trellis resource (test)
 
 To create a Trellis resource and test integration between the pipeline components, you may do so using a curl incantation like follows:
 
 ```shell
-curl -i -X POST -H 'Content-Type: text/turtle; charset=UTF-8' -H 'Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' -H "Slug: $(uuidgen)" -d "@prefix dcterms: <http://purl.org/dc/terms/> .\n@prefix ldp: <http://www.w3.org/ns/ldp#> .\n<> a ldp:Container, ldp:BasicContainer;\n dcterms:title 'A cool resource' ." http://platform:8080
+curl -i -X POST -H 'Content-Type: text/turtle; charset=UTF-8' -H 'Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' -H "Slug: $(uuidgen)" -d "@prefix dcterms: <http://purl.org/dc/terms/> .\n@prefix ldp: <http://www.w3.org/ns/ldp#> .\n<> a ldp:Container, ldp:BasicContainer;\n dcterms:title 'A cool resource' ." http://localhost:8080
 ```
-
-Note that the above example assumes that your host has an alias from `platform` (the name of Trellis host running within docker-compose) to `localhost` (in e.g., `/etc/hosts`). If you use `localhost:8080` instead, the pipeline won't be able to retrieve the resource from Trellis.
 
 ## Development
 
 For development purposes, you may wish to spin up all the components other than the pipeline if you'll be iterating:
 
 ```shell
-$ docker-compose up -d platform search
+$ docker-compose up -d platform search searchui
 ```
 
 And then spin up the pipeline using:
@@ -48,9 +73,7 @@ And then spin up the pipeline using:
 npm run dev-start
 ```
 
-### Create a Trellis resource (dev)
-
-See the same section under `Testing` above, but note that you won't need to create the `platform` alias when running in dev, so your `curl` command can hit `localhost:8080`.
+Note that if you want to view the ElasticSearch index, you can browse to http://localhost:1358/.
 
 ## Build and push image
 
