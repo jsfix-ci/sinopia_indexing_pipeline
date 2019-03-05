@@ -23,7 +23,7 @@ services:
     environment:
       INDEX_HOST: search
       BROKER_HOST: broker
-    command: dockerize -wait tcp://broker:61613 -wait tcp://search:9200 -timeout 2m npm start
+    command: dockerize -wait tcp://broker:61613 -wait tcp://search:9200 -timeout 3m npm start
     depends_on:
       - broker
       - search
@@ -33,7 +33,8 @@ services:
     environment:
       INDEX_HOST: search
       BROKER_HOST: broker
-    command: dockerize -wait tcp://broker:61613 -wait tcp://search:9200 -wait tcp://platform:8080 -timeout 2m npm run integration
+      INSIDE_CONTAINER: 'true'
+    command: dockerize -wait tcp://broker:61613 -wait tcp://search:9200 -wait tcp://platform:8080 -timeout 3m npm run integration
     depends_on:
       - broker
       - search

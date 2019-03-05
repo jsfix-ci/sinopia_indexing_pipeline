@@ -24,6 +24,31 @@ To shut it down and clean up, run:
 $ docker-compose down
 ```
 
+### Run the linter and tests
+
+```shell
+$ npm run ci
+```
+
+Or, to run the linter and unit tests separately:
+
+```shell
+$ npm run lint
+$ npm test
+```
+
+To run the integration tests, they must be invoked independent of the unit tests:
+
+```shell
+$ npm run integration
+```
+
+You may also run these in a container to more closely mimic the behavior running in continuous integration:
+
+```shell
+$ docker-compose up integration
+```
+
 ### Create a Trellis resource (test)
 
 To create a Trellis resource and test integration between the pipeline components, you may do so using a curl incantation like follows:

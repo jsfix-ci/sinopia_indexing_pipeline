@@ -10,6 +10,8 @@ describe('integration tests', () => {
   const resourceSlug = Math.floor(Math.random() * 1000000).toString()
   const resourceId = `${Config.platformUrl}/${resourceSlug}`
   const resourceTitle = 'A cool title'
+  // Use localhost if not in container, else use configured value
+  const trellisEndpoint = Boolean(process.env.INSIDE_CONTAINER) ? Config.platformUrl : 'http://localhost:8080'
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
   beforeAll(() => {
@@ -40,7 +42,7 @@ describe('integration tests', () => {
     })
   })
   test('new Trellis resource is indexed as expected', async () => {
-    superagent.post(Config.platformUrl)
+    superagent.post(trellisEndpoint)
       .type('text/turtle; charset=UTF-8')
       .send(`@prefix dcterms: <http://purl.org/dc/terms/> .\n@prefix ldp: <http://www.w3.org/ns/ldp#> .\n<> a ldp:BasicContainer;\n dcterms:title '${resourceTitle}' .`)
       .set('Link', '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"')
@@ -48,7 +50,7 @@ describe('integration tests', () => {
       .then(res => res.body)
 
     // Give the pipeline a chance to run
-    await sleep(2000)
+    await sleep(3000)
 
     return client.search({
       index: Config.indexName,
