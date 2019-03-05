@@ -43,7 +43,9 @@ To run the integration tests, they must be invoked independent of the unit tests
 $ npm run integration
 ```
 
-You may also run these in a container to more closely mimic the behavior running in continuous integration:
+### Continuous Integration
+
+We are using CircleCI to run continuous integration. CircleCI invokes the integration tests using a container, which works around inter-container networking constraints in the CI environment. If you prefer to run integration tests in a manner that more closely matches what runs in CI, you can do that via:
 
 ```shell
 $ docker-compose up integration
