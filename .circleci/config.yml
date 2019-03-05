@@ -30,9 +30,6 @@ jobs:
             - node_modules
           key: dependencies-{{ checksum "package.json" }}
       - run:
-          name: Spin up containers for integration testing
-          command: docker-compose up -d pipeline platform
-      - run:
           name: Setup Code Climate test-reporter
           command: |
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
@@ -43,6 +40,9 @@ jobs:
             ./cc-test-reporter before-build
             npm run ci
             ./cc-test-reporter after-build --exit-code $?
+      - run:
+          name: Spin up containers for integration testing
+          command: docker-compose up -d pipeline platform
       - run:
           name: Run integration tests
           command: docker-compose up integration
