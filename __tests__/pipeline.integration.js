@@ -50,7 +50,7 @@ describe('integration tests', () => {
       .then(res => res.body)
 
     // Give the pipeline a chance to run
-    await sleep(3000)
+    await sleep(4500)
 
     return client.search({
       index: Config.indexName,

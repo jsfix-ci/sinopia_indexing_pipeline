@@ -15,7 +15,7 @@ This is the repository for the Sinopia Indexing Pipeline. The pipeline is a Node
 Using `docker-compose`, you can spin up containers for Trellis, ActiveMQ, ElasticSearch, Postgres, and the pipeline::
 
 ```shell
-$ docker-compose up -d
+$ docker-compose up -d pipeline
 ```
 
 To shut it down and clean up, run:

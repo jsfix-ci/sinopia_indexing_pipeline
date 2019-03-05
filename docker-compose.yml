@@ -27,6 +27,7 @@ services:
     depends_on:
       - broker
       - search
+      - platform
   integration:
     build:
       context: .
@@ -36,9 +37,7 @@ services:
       INSIDE_CONTAINER: 'true'
     command: dockerize -wait tcp://broker:61613 -wait tcp://search:9200 -wait tcp://platform:8080 -timeout 3m npm run integration
     depends_on:
-      - broker
-      - search
-      - platform
+      - pipeline
   database:
     image: postgres:latest
     environment:
