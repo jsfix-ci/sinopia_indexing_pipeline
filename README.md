@@ -48,16 +48,18 @@ $ npm run integration
 We are using CircleCI to run continuous integration. CircleCI invokes the integration tests using a container, which works around inter-container networking constraints in the CI environment. If you prefer to run integration tests in a manner that more closely matches what runs in CI, you can do that via:
 
 ```shell
-$ docker-compose up integration
+$ docker-compose run integration
 ```
 
 ### Create a Trellis resource (test)
 
-To create a Trellis resource and test integration between the pipeline components, you may do so using a curl incantation like follows:
+To create a Trellis container and test integration between the pipeline components, you may do so using a curl incantation like follows:
 
 ```shell
-curl -i -X POST -H 'Content-Type: text/turtle; charset=UTF-8' -H 'Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' -H "Slug: $(uuidgen)" -d "@prefix dcterms: <http://purl.org/dc/terms/> .\n@prefix ldp: <http://www.w3.org/ns/ldp#> .\n<> a ldp:Container, ldp:BasicContainer;\n dcterms:title 'A cool resource' ." http://localhost:8080
+curl -i -X POST -H 'Content-Type: application/ld+json' -H 'Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' -H "Slug: repository" -d '{ "@context": { "dcterms": "http://purl.org/dc/terms/" }, "@id": "", "dcterms:title": "Repository container" }' http://localhost:8080
 ```
+
+See [https://github.com/LD4P/sinopia_server/wiki/Draft-Notes-for-Sinopia-Server-API-Spec](Sinopia Server notes) for more Trellis `curl` incantations.
 
 ## Development
 

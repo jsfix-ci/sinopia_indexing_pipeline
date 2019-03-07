@@ -10,6 +10,8 @@ services:
     image: ld4p/trellis-ext-db:latest
     environment:
       TRELLIS_BASE_URL: http://platform:8080
+      TRELLIS_LOGGING_LEVEL: INFO
+      TRELLIS_CONSOLE_LOGGING_THRESHOLD: INFO
     ports:
       - 8080:8080
       - 8081:8081

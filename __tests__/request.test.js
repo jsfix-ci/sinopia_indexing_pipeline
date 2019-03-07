@@ -1,11 +1,15 @@
+import mockConsole from 'jest-mock-console'
 import superagent from 'superagent'
 import Config from '../src/config'
 import Logger from '../src/logger'
 import Request from '../src/request'
 
 // Mocks to avoid making real HTTP requests
-import RequestSuccessFake from '../__mocks__/request-success-fake'
-import RequestFailureFake from '../__mocks__/request-failure-fake'
+import AgentSuccessFake from '../__mocks__/agent-success-fake'
+import AgentFailureFake from '../__mocks__/agent-failure-fake'
+
+// Outermost-scope variable to support mocking/restoring the `console` object
+let restoreConsole = null
 
 describe('Request', () => {
   let uri = 'http://example.edu/foo'
@@ -33,11 +37,18 @@ describe('Request', () => {
     })
   })
   describe('body()', () => {
+    beforeAll(() => {
+      // Eat console output
+      restoreConsole = mockConsole(['error', 'debug'])
+    })
+    afterAll(() => {
+      restoreConsole()
+    })
     describe('when successful', () => {
       let expectedBody = '{"it": "worked"}'
 
       beforeAll(() => {
-        request.agent = new RequestSuccessFake(expectedBody)
+        request.agent = new AgentSuccessFake(expectedBody)
       })
       test('returns the response body', () => {
         // the `return` statement is required here: https://jestjs.io/docs/en/asynchronous#promises
@@ -52,7 +63,7 @@ describe('Request', () => {
       let logSpy = jest.spyOn(request.logger, 'error')
 
       beforeAll(() => {
-        request.agent = new RequestFailureFake(errorMessage)
+        request.agent = new AgentFailureFake(errorMessage)
       })
       test('logs the error and returns null', () => {
         // the `return` statement is required here: https://jestjs.io/docs/en/asynchronous#promises
