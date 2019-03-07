@@ -1,3 +1,4 @@
+import mockConsole from 'jest-mock-console'
 import Stomp from 'stomp-client'
 import Config from '../src/config'
 import Listener from '../src/listener'
@@ -5,6 +6,9 @@ import Logger from '../src/logger'
 
 // Mocks to avoid making real stomp connections
 import BrokerFake from '../__mocks__/broker-fake'
+
+// Outermost-scope variable to support mocking/restoring the `console` object
+let restoreConsole = null
 
 describe('Listener', () => {
   let listener = new Listener()
@@ -23,6 +27,13 @@ describe('Listener', () => {
 
     beforeEach(() => {
       listener.client = new BrokerFake(Config.brokerHost, Config.brokerPort)
+    })
+    beforeAll(() => {
+      // Eat console output
+      restoreConsole = mockConsole(['error', 'debug'])
+    })
+    afterAll(() => {
+      restoreConsole()
     })
     test('logs a debug message before connecting', () => {
       listener.listen(newMessageHandler)

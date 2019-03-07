@@ -41,11 +41,8 @@ jobs:
             npm run ci
             ./cc-test-reporter after-build --exit-code $?
       - run:
-          name: Spin up containers for integration testing
-          command: docker-compose up -d pipeline
-      - run:
           name: Run integration tests
-          command: docker-compose up integration
+          command: docker-compose run integration
   register_image:
     <<: *defaults
     steps:
