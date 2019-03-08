@@ -12,8 +12,6 @@ version: 2
 jobs:
   build:
     <<: *defaults
-    environment:
-      CC_TEST_REPORTER_ID: df07c492e87437bdb4127915ce554fd0b601e9111d66119ebfaa73eba57d5cf4
     steps:
       - checkout
       - setup_remote_docker
