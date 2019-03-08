@@ -13,12 +13,12 @@
   "repository": "github:LD4P/sinopia_indexing_pipeline",
   "scripts": {
     "ci": "npm run lint && npm run coverage",
-    "coverage": "jest --color --coverage",
+    "coverage": "jest --colors --coverage",
     "dev-start": "nodemon --exec babel-node runner.js",
-    "integration": "jest --color --testRegex=\\.integration\\.js$ --detectOpenHandles",
+    "integration": "jest --colors --testRegex=\\.integration\\.js$",
     "lint": "eslint --color -c .eslintrc.yml --ext js .",
     "start": "babel-node runner.js",
-    "test": "jest --color"
+    "test": "jest --colors"
   },
   "dependencies": {
     "@babel/runtime": "^7.3.4",
