@@ -7,7 +7,7 @@ describe('integration tests', () => {
     host: `${Config.indexHost}:${Config.indexPort}`,
     log: 'warning'
   })
-  const resourceSlug = Math.floor(Math.random() * 1000000).toString()
+  const resourceSlug = 'resourceTemplate:foo123:Something:Excellent'
   const resourceId = `${Config.platformUrl}/${resourceSlug}`
   const resourceTitle = 'A cool title'
   // Use localhost if not in container, else use configured value
@@ -28,7 +28,7 @@ describe('integration tests', () => {
     return client.delete({
       index: Config.indexName,
       type: Config.indexType,
-      id: resourceId
+      id: resourceSlug
     })
   })
   test('index is clear of test document', () => {
@@ -39,7 +39,7 @@ describe('integration tests', () => {
         query: {
           term: {
             _id: {
-              value: resourceId
+              value: resourceSlug
             }
           }
         }
@@ -66,7 +66,7 @@ describe('integration tests', () => {
         query: {
           term: {
             _id: {
-              value: resourceId
+              value: resourceSlug
             }
           }
         }
@@ -92,7 +92,7 @@ describe('integration tests', () => {
         query: {
           term: {
             _id: {
-              value: resourceId
+              value: resourceSlug
             }
           }
         }

@@ -32,7 +32,7 @@ describe('Indexer', () => {
   describe('index()', () => {
     let clientMock = new ClientSuccessFake()
     let indexSpy = jest.spyOn(clientMock, 'index')
-    let json = { '@id': '12345', foo: 'bar' }
+    let json = { '@id': 'http://foo.bar/12345', foo: 'bar' }
 
     beforeAll(() => {
       indexer.client = clientMock
@@ -43,7 +43,7 @@ describe('Indexer', () => {
       restoreConsole()
     })
     test('calls index() on the client', () => {
-      indexer.index(json, '12345')
+      indexer.index(json, 'http://foo.bar/12345')
       expect(indexSpy).toHaveBeenCalledWith({
         index: Config.indexName,
         type: Config.indexType,
@@ -90,7 +90,7 @@ describe('Indexer', () => {
   describe('delete()', () => {
     let clientMock = new ClientSuccessFake()
     let deleteSpy = jest.spyOn(clientMock, 'delete')
-    let uri = '12345'
+    let uri = 'http://foo.bar/12345'
 
     beforeEach(() => {
       indexer.client = clientMock
@@ -107,7 +107,7 @@ describe('Indexer', () => {
       expect(deleteSpy).toHaveBeenCalledWith({
         index: Config.indexName,
         type: Config.indexType,
-        id: uri
+        id: '12345'
       })
     })
     describe('when delete succeeds', () => {
@@ -143,6 +143,23 @@ describe('Indexer', () => {
         expect.assertions(1)
         await indexer.delete(uri)
         expect(logSpy).toHaveBeenCalledWith('error deleting: what a useful error message this is')
+      })
+    })
+  })
+  describe('identifier_from()', () => {
+    beforeAll(() => {
+      // Eat console output
+      restoreConsole = mockConsole(['error', 'debug'])
+    })
+    afterAll(() => {
+      restoreConsole()
+    })
+    test('removes URI scheme/host/port', () => {
+      expect(indexer.identifier_from('https://localhost:8080/one-two-three')).toBe('one-two-three')
+    })
+    describe('with a pathless URI', () => {
+      test('returns pre-configured value', () => {
+        expect(indexer.identifier_from('https://localhost:8080/')).toBe(Config.rootNodeIdentifier)
       })
     })
   })

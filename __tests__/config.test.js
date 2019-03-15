@@ -7,6 +7,9 @@ describe('Config', () => {
     test('platformUrl has default value', () => {
       expect(Config.platformUrl).toEqual('http://platform:8080')
     })
+    test('rootNodeIdentifier has default value', () => {
+      expect(Config.rootNodeIdentifier).toEqual('__root_node__')
+    })
     test('brokerHost has default value', () => {
       expect(Config.brokerHost).toEqual('localhost')
     })
@@ -40,6 +43,7 @@ describe('Config', () => {
     beforeEach(() => {
       process.env = {
         TRELLIS_BASE_URL: 'https://ldp.example.edu',
+        ROOT_NODE_IDENTIFIER: 'super_cool',
         BROKER_HOST: 'myhost',
         BROKER_PORT: 61616,
         QUEUE_NAME: '/topic/foobar',
@@ -56,6 +60,9 @@ describe('Config', () => {
     })
     test('platformUrl has overridden value', () => {
       expect(Config.platformUrl).toEqual('https://ldp.example.edu')
+    })
+    test('rootNodeIdentifier has overridden value', () => {
+      expect(Config.rootNodeIdentifier).toEqual('super_cool')
     })
     test('brokerHost has overridden value', () => {
       expect(Config.brokerHost).toEqual('myhost')

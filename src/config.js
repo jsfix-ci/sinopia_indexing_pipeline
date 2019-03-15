@@ -3,6 +3,10 @@ export default class Config {
     return process.env.TRELLIS_BASE_URL || 'http://platform:8080'
   }
 
+  static get rootNodeIdentifier() {
+    return process.env.ROOT_NODE_IDENTIFIER || '__root_node__'
+  }
+
   static get brokerHost() {
     return process.env.BROKER_HOST || 'localhost'
   }
