@@ -59,7 +59,7 @@ To create a Trellis container and test integration between the pipeline componen
 curl -i -X POST -H 'Content-Type: application/ld+json' -H 'Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' -H "Slug: repository" -d '{ "@context": { "dcterms": "http://purl.org/dc/terms/" }, "@id": "", "dcterms:title": "Repository container" }' http://localhost:8080
 ```
 
-See [https://github.com/LD4P/sinopia_server/wiki/Draft-Notes-for-Sinopia-Server-API-Spec](Sinopia Server notes) for more Trellis `curl` incantations.
+See [Sinopia Server notes](https://github.com/LD4P/sinopia_server/wiki/Draft-Notes-for-Sinopia-Server-API-Spec) for more Trellis `curl` incantations.
 
 ## Development
 
