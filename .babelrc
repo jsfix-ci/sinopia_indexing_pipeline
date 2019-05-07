@@ -2,9 +2,14 @@
   "presets": [
     "@babel/preset-env"
   ],
+  "plugins": [
+    "@babel/plugin-proposal-optional-chaining"
+  ],
   "env": {
     "test": {
-      "plugins": ["@babel/plugin-transform-runtime"]
+      "plugins": [
+        "@babel/plugin-transform-runtime"
+      ]
     }
   }
 }

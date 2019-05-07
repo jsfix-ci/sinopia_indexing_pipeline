@@ -1,11 +1,11 @@
 import mockConsole from 'jest-mock-console'
 import Stomp from 'stomp-client'
-import Config from '../src/config'
-import Listener from '../src/listener'
-import Logger from '../src/logger'
+import Config from '../src/Config'
+import Listener from '../src/Listener'
+import Logger from '../src/Logger'
 
 // Mocks to avoid making real stomp connections
-import BrokerFake from '../__mocks__/broker-fake'
+import BrokerFake from '../__mocks__/BrokerFake'
 
 // Outermost-scope variable to support mocking/restoring the `console` object
 let restoreConsole = null

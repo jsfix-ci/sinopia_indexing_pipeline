@@ -2,6 +2,9 @@
   "name": "sinopia_indexing_pipeline",
   "version": "0.1.0",
   "description": "Sinopia Indexing Pipeline listens for STOMP messages, parses URIs out of messages, retrieves resources from an LDP server, and indexes them into ElasticSearch ",
+  "bin": {
+    "reindex": "bin/reindex"
+  },
   "license": "Apache-2.0",
   "homepage": "https://github.com/LD4P/sinopia_indexing_pipeline",
   "contributors": [
@@ -21,6 +24,7 @@
     "test": "jest --colors"
   },
   "dependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.2.0",
     "@babel/runtime": "^7.3.4",
     "elasticsearch": "^15.4.1",
     "stomp-client": "^0.9.0",

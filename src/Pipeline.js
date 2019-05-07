@@ -1,8 +1,7 @@
-import Config from './config'
-import Listener from './listener'
-import Logger from './logger'
-import Request from './request'
-import Indexer from './indexer'
+import Listener from './Listener'
+import Logger from './Logger'
+import Request from './Request'
+import Indexer from './Indexer'
 
 export default class Pipeline {
   constructor() {
@@ -42,9 +41,9 @@ export default class Pipeline {
   }
 
   create(uri, types) {
-    const mimeType = this.mimeTypeFrom(types)
-    new Request(uri, mimeType).body()
-      .then(json => {
+    new Request(uri, types).response()
+      .then(res => {
+        const json = res.body
         this.logger.debug(`indexing ${uri}: ${JSON.stringify(json)}`)
         this.indexer.index(json, uri, types)
       })
@@ -61,16 +60,5 @@ export default class Pipeline {
   delete(uri, types) {
     this.logger.debug(`deleting ${uri} from index`)
     this.indexer.delete(uri, types)
-  }
-
-  /**
-   * Returns MIME type given LDP resource types
-   * @param {Array} types - LDP type URIs of object
-   * @returns {string} MIME type
-   */
-  mimeTypeFrom(types) {
-    if (types.includes(Config.nonRdfTypeURI))
-      return Config.nonRdfMimeType
-    return Config.defaultMimeType
   }
 }

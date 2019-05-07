@@ -40,6 +40,17 @@ services:
     command: dockerize -wait tcp://broker:61613 -wait tcp://search:9200 -wait tcp://platform:8080 -timeout 3m npm run integration
     depends_on:
       - pipeline
+  reindexer:
+    build:
+      context: .
+    environment:
+      TRELLIS_BASE_URL: http://platform:8080
+      INDEX_HOST: search
+      BROKER_HOST: broker
+      INSIDE_CONTAINER: 'true'
+    command: bin/reindex
+    depends_on:
+      - pipeline
   database:
     image: postgres:latest
     environment:
