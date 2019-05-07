@@ -3,7 +3,6 @@ services:
   broker:
     image: rmohr/activemq
     ports:
-      - 61616:61616
       - 61613:61613
       - 8161:8161
   platform:
@@ -12,6 +11,8 @@ services:
       TRELLIS_BASE_URL: http://platform:8080
       TRELLIS_LOGGING_LEVEL: INFO
       TRELLIS_CONSOLE_LOGGING_THRESHOLD: INFO
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-us-west-2_CGd9Wq136}
+      AWS_REGION: ${AWS_REGION:-us-west-2}
     ports:
       - 8080:8080
       - 8081:8081
@@ -25,7 +26,6 @@ services:
     environment:
       INDEX_HOST: search
       BROKER_HOST: broker
-    command: dockerize -wait tcp://broker:61613 -wait tcp://search:9200 -timeout 3m npm start
     depends_on:
       - broker
       - search

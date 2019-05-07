@@ -1,3 +1,4 @@
+import Config from './config'
 import Listener from './listener'
 import Logger from './logger'
 import Request from './request'
@@ -18,18 +19,20 @@ export default class Pipeline {
       this.logger.debug(`received message: ${body}`)
       body = JSON.parse(body)
 
-      let uri = body.object.id
+      const uri = body.object.id
+      // Trellis returns an array for `object.type`
+      const types = body.object.type
       this.logger.debug(`resource ${uri} needs indexing`)
 
       // `body.type` looks like { ... "type": [ "http://www.w3.org/ns/prov#Activity", "Delete" ] ... }
-      let operation = body.type[1].toLowerCase()
+      const operation = body.type[1].toLowerCase()
       switch(operation) {
         case 'update':
         case 'create':
         case 'delete':
           // This works because the expressions in the above case statement are
           // functions in this class
-          this[operation](uri)
+          this[operation](uri, types)
           break
         // We only understand the above operation types. Log an error and keep listening.
         default:
@@ -38,26 +41,36 @@ export default class Pipeline {
     })
   }
 
-  // TODO: Figure out a more Javascript-y way to have class functions share behavior
-  create(uri) {
-    new Request(uri).body()
+  create(uri, types) {
+    const mimeType = this.mimeTypeFrom(types)
+    new Request(uri, mimeType).body()
       .then(json => {
         this.logger.debug(`indexing ${uri}: ${JSON.stringify(json)}`)
-        this.indexer.index(json, uri)
+        this.indexer.index(json, uri, types)
       })
       .catch(err => {
         this.logger.error(`error processing ${uri}: ${err.message}`)
       })
   }
 
-  // TODO: Figure out a more Javascript-y way to have class functions share behavior
   // Updates and creates are handled the same way since we index w/ an ID
-  update(uri) {
-    this.create(uri)
+  update(uri, types) {
+    this.create(uri, types)
   }
 
-  delete(uri) {
+  delete(uri, types) {
     this.logger.debug(`deleting ${uri} from index`)
-    this.indexer.delete(uri)
+    this.indexer.delete(uri, types)
+  }
+
+  /**
+   * Returns MIME type given LDP resource types
+   * @param {Array} types - LDP type URIs of object
+   * @returns {string} MIME type
+   */
+  mimeTypeFrom(types) {
+    if (types.includes(Config.nonRdfTypeURI))
+      return Config.nonRdfMimeType
+    return Config.defaultMimeType
   }
 }

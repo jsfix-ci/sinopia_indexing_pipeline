@@ -26,7 +26,7 @@ import ClientSuccessFake from '../__mocks__/client-success-fake'
 let restoreConsole = null
 
 describe('Pipeline', () => {
-  let pipeline = new Pipeline()
+  const pipeline = new Pipeline()
 
   describe('constructor', () => {
     test('sets this.listener', () => {
@@ -39,13 +39,23 @@ describe('Pipeline', () => {
       expect(pipeline.indexer).toBeInstanceOf(Indexer)
     })
   })
+  describe('mimeTypeFrom()', () => {
+    test('returns the default mime type by default', () => {
+      expect(pipeline.mimeTypeFrom([])).toBe('application/ld+json')
+    })
+    test('returns the non RDF mime type when types includes LDP-NRS', () => {
+      expect(pipeline.mimeTypeFrom(['http://www.w3.org/ns/ldp#NonRDFSource'])).toBe('application/json')
+    })
+  })
   describe('run()', () => {
-    let logSpy = jest.spyOn(pipeline.logger, 'debug')
-    let errorSpy = jest.spyOn(pipeline.logger, 'error')
-    let objectUri = 'http://example.org/foo'
-    let fakeBody = JSON.stringify({
+    const logSpy = jest.spyOn(pipeline.logger, 'debug')
+    const errorSpy = jest.spyOn(pipeline.logger, 'error')
+    const objectUri = 'http://example.org/foo'
+    const objectTypes = ['http://www.w3.org/ns/ldp#BasicContainer']
+    const fakeBody = JSON.stringify({
       object: {
-        id: objectUri
+        id: objectUri,
+        type: objectTypes
       },
       type: [
         'this is usually a PROV URI in string form but our code does not care',
@@ -64,7 +74,7 @@ describe('Pipeline', () => {
       restoreConsole()
     })
     test('listens for messages', () => {
-      let listenerSpy = jest.spyOn(pipeline.listener, 'listen')
+      const listenerSpy = jest.spyOn(pipeline.listener, 'listen')
 
       pipeline.run()
       expect(listenerSpy).toHaveBeenCalledTimes(1)
@@ -87,9 +97,10 @@ describe('Pipeline', () => {
       })
     })
     describe('when handling deletes', () => {
-      let fakeBody = JSON.stringify({
+      const fakeBody = JSON.stringify({
         object: {
-          id: objectUri
+          id: objectUri,
+          type: objectTypes
         },
         type: [
           'this is usually a PROV URI in string form but our code does not care',
@@ -105,15 +116,16 @@ describe('Pipeline', () => {
         expect(logSpy).toHaveBeenCalledWith(`deleting ${objectUri} from index`)
       })
       test('calls delete on the indexer', () => {
-        let indexerSpy = jest.spyOn(pipeline.indexer, 'delete')
+        const indexerSpy = jest.spyOn(pipeline.indexer, 'delete')
         pipeline.run()
-        expect(indexerSpy).toHaveBeenCalledWith(objectUri)
+        expect(indexerSpy).toHaveBeenCalledWith(objectUri, objectTypes)
       })
     })
     describe('when handling unsupported operations', () => {
-      let fakeBody = JSON.stringify({
+      const fakeBody = JSON.stringify({
         object: {
-          id: objectUri
+          id: objectUri,
+          type: objectTypes
         },
         type: [
           'this is usually a PROV URI in string form but our code does not care',

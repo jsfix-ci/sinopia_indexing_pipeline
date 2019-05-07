@@ -23,12 +23,16 @@ export default class Config {
     return process.env.DEFAULT_MIME_TYPE || 'application/ld+json'
   }
 
-  static get indexName() {
-    return process.env.INDEX_NAME || 'sinopia_index'
+  static get resourceIndexName() {
+    return process.env.RESOURCE_INDEX_NAME || 'sinopia_resources'
+  }
+
+  static get nonRdfIndexName() {
+    return process.env.NON_RDF_INDEX_NAME || 'sinopia_templates'
   }
 
   static get indexType() {
-    return process.env.INDEX_TYPE || 'sinopia_resource'
+    return process.env.INDEX_TYPE || 'sinopia'
   }
 
   static get indexHost() {
@@ -37,6 +41,14 @@ export default class Config {
 
   static get indexPort() {
     return process.env.INDEX_PORT || 9200
+  }
+
+  static get nonRdfTypeURI() {
+    return process.env.NON_RDF_TYPE_URI || 'http://www.w3.org/ns/ldp#NonRDFSource'
+  }
+
+  static get nonRdfMimeType() {
+    return process.env.NON_RDF_MIME_TYPE || 'application/json'
   }
 
   static get debug() {

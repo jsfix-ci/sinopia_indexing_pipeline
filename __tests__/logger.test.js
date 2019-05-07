@@ -9,7 +9,7 @@ describe('Logger', () => {
   const logger = new Logger()
 
   describe('debug', () => {
-    let consoleSpy = jest.spyOn(console, 'debug')
+    const consoleSpy = jest.spyOn(console, 'debug')
 
     beforeEach(() => {
       consoleSpy.mockReset()
@@ -34,7 +34,7 @@ describe('Logger', () => {
     })
   })
   describe('error', () => {
-    let consoleSpy = jest.spyOn(console, 'error')
+    const consoleSpy = jest.spyOn(console, 'error')
 
     beforeEach(() => {
       consoleSpy.mockReset()
