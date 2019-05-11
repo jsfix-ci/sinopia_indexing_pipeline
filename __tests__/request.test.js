@@ -12,8 +12,8 @@ import AgentFailureFake from '../__mocks__/agent-failure-fake'
 let restoreConsole = null
 
 describe('Request', () => {
-  let uri = 'http://example.edu/foo'
-  let request = new Request(uri)
+  const uri = 'http://example.edu/foo'
+  const request = new Request(uri)
 
   describe('constructor', () => {
     test('sets this.uri', () => {
@@ -30,7 +30,7 @@ describe('Request', () => {
     })
     describe('with mimeType param', () => {
       test('overrides default this.mimeType', () => {
-        let override = 'text/plain'
+        const override = 'text/plain'
 
         expect(new Request(uri, override).mimeType).toEqual(override)
       })
@@ -45,7 +45,7 @@ describe('Request', () => {
       restoreConsole()
     })
     describe('when successful', () => {
-      let expectedBody = '{"it": "worked"}'
+      const expectedBody = '{"it": "worked"}'
 
       beforeAll(() => {
         request.agent = new AgentSuccessFake(expectedBody)
@@ -59,8 +59,8 @@ describe('Request', () => {
       })
     })
     describe('when failure', () => {
-      let errorMessage = 'http error what what'
-      let logSpy = jest.spyOn(request.logger, 'error')
+      const errorMessage = 'http error what what'
+      const logSpy = jest.spyOn(request.logger, 'error')
 
       beforeAll(() => {
         request.agent = new AgentFailureFake(errorMessage)

@@ -16,22 +16,20 @@ export default class Indexer {
 
   /**
    * Uses client to create or update index entry
-   * @param {string} uri - URI of object to be indexed
    * @param {Object} json - Object to be indexed
+   * @param {string} uri - URI of object to be indexed
+   * @param {string} types - one or more LDP type URIs
    * @returns {?boolean} true if successful; null if not
    */
-  index(json, uri) {
+  index(json, uri, types) {
     return this.client.index({
-      index: Config.indexName,
+      index: this.indexNameFrom(types),
       type: Config.indexType,
-      id: this.identifier_from(uri),
+      id: this.identifierFrom(uri),
       body: json
     }).then(indexResponse => {
-      if (!this.knownIndexResults.includes(indexResponse.result)) {
-        throw {
-          message: JSON.stringify(indexResponse)
-        }
-      }
+      if (!this.knownIndexResults.includes(indexResponse.result))
+        throw { message: JSON.stringify(indexResponse) }
       return true
     }).catch(err => {
       this.logger.error(`error indexing: ${err.message}`)
@@ -43,18 +41,16 @@ export default class Indexer {
    * Uses client to delete index entry
    * @param {string} uri - URI of object to be indexed
    * @returns {?boolean} true if successful; null if not
+   * @param {string} types - one or more LDP type URIs
    */
-  delete(uri) {
+  delete(uri, types) {
     return this.client.delete({
-      index: Config.indexName,
+      index: this.indexNameFrom(types),
       type: Config.indexType,
-      id: this.identifier_from(uri)
+      id: this.identifierFrom(uri)
     }).then(indexResponse => {
-      if (!this.knownDeleteResults.includes(indexResponse.result)) {
-        throw {
-          message: JSON.stringify(indexResponse)
-        }
-      }
+      if (!this.knownDeleteResults.includes(indexResponse.result))
+        throw { message: JSON.stringify(indexResponse) }
       return true
     }).catch(err => {
       this.logger.error(`error deleting: ${err.message}`)
@@ -67,10 +63,21 @@ export default class Indexer {
    * @param {string} uri - URI of object, e.g., https://foo.bar/baz-quux-quuux
    * @returns {string} path from URI, e.g., baz-quux-quuux
    */
-  identifier_from(uri) {
+  identifierFrom(uri) {
     // pathname looks like /baz-quux-quuux; remove the slash
-    let identifier = new Url(uri).pathname.substr(1) || Config.rootNodeIdentifier
+    const identifier = new Url(uri).pathname.substr(1) || Config.rootNodeIdentifier
     this.logger.debug(`identifier from ${uri} is ${identifier}`)
     return identifier
+  }
+
+  /**
+   * Returns appropriate index name given a list of LDP types
+   * @param {Array} types - LDP type URIs of object
+   * @returns {string} name of index
+   */
+  indexNameFrom(types) {
+    if (types.includes(Config.nonRdfTypeURI))
+      return Config.nonRdfIndexName
+    return Config.resourceIndexName
   }
 }

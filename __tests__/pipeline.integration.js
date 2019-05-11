@@ -7,39 +7,66 @@ describe('integration tests', () => {
     host: `${Config.indexHost}:${Config.indexPort}`,
     log: 'warning'
   })
-  const resourceSlug = 'resourceTemplate:foo123:Something:Excellent'
-  const resourceId = `${Config.platformUrl}/${resourceSlug}`
+  const resourceSlug = 'stanford12345'
   const resourceTitle = 'A cool title'
+  const nonRdfSlug = 'resourceTemplate:foo123:Something:Excellent'
+  const nonRdfBody = { foo: 'bar', baz: 'quux' }
   // Use localhost if not in container, else use configured value
   const endpointBaseUrl = Boolean(process.env.INSIDE_CONTAINER) ? Config.platformUrl : 'http://localhost:8080'
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
-
-  beforeAll(async () => {
-    let indexExists = await client.indices.exists({index: Config.indexName})
+  const createIndexIfAbsent = async indexName => {
+    const indexExists = await client.indices.exists({ index: indexName })
     if (!indexExists) {
       return client.indices.create({
-        index: Config.indexName
+        index: indexName
       })
     }
     return null
+  }
+
+  beforeAll(async () => {
+    await createIndexIfAbsent(Config.resourceIndexName)
+    await createIndexIfAbsent(Config.nonRdfIndexName)
   })
-  afterAll(() => {
-    // Remove test resource from index
-    return client.delete({
-      index: Config.indexName,
+  afterAll(async () => {
+    // Remove test resources from indices
+    await client.delete({
+      index: Config.resourceIndexName,
       type: Config.indexType,
       id: resourceSlug
     })
+    await client.delete({
+      index: Config.nonRdfIndexName,
+      type: Config.indexType,
+      id: nonRdfSlug
+    })
   })
-  test('index is clear of test document', () => {
+  test('resource index is clear of test document', () => {
     return client.search({
-      index: Config.indexName,
+      index: Config.resourceIndexName,
       type: Config.indexType,
       body: {
         query: {
           term: {
             _id: {
               value: resourceSlug
+            }
+          }
+        }
+      }
+    }).then(response => {
+      expect(response.hits.total).toEqual(0)
+    })
+  })
+  test('resource template index is clear of test document', () => {
+    return client.search({
+      index: Config.nonRdfIndexName,
+      type: Config.indexType,
+      body: {
+        query: {
+          term: {
+            _id: {
+              value: nonRdfSlug
             }
           }
         }
@@ -57,10 +84,10 @@ describe('integration tests', () => {
       .then(res => res.body)
 
     // Give the pipeline a chance to run
-    await sleep(4500)
+    await sleep(4900)
 
     return client.search({
-      index: Config.indexName,
+      index: Config.resourceIndexName,
       type: Config.indexType,
       body: {
         query: {
@@ -73,12 +100,42 @@ describe('integration tests', () => {
       }
     }).then(response => {
       expect(response.hits.total).toEqual(1)
-      let firstHit = response.hits.hits[0]
-      expect(firstHit._source['@id']).toEqual(resourceId)
+      const firstHit = response.hits.hits[0]
+      expect(firstHit._source['@id']).toEqual(`${Config.platformUrl}/${resourceSlug}`)
       expect(firstHit._source.title).toEqual(resourceTitle)
     })
   })
-  test('deleted Trellis resource is removed from index', async () => {
+  test('new Trellis resource template is indexed', async () => {
+    superagent.post(endpointBaseUrl)
+      .type('application/json')
+      .send(nonRdfBody)
+      .set('Link', '<http://www.w3.org/ns/ldp#NonRDFSource>; rel="type"')
+      .set('Slug', nonRdfSlug)
+      .then(res => res.body)
+
+    // Give the pipeline a chance to run
+    await sleep(4900)
+
+    return client.search({
+      index: Config.nonRdfIndexName,
+      type: Config.indexType,
+      body: {
+        query: {
+          term: {
+            _id: {
+              value: nonRdfSlug
+            }
+          }
+        }
+      }
+    }).then(response => {
+      expect(response.hits.total).toEqual(1)
+      const firstHit = response.hits.hits[0]
+      expect(firstHit._source.foo).toEqual('bar')
+      expect(firstHit._source.baz).toEqual('quux')
+    })
+  })
+  test('deleted Trellis resource is removed from resource index', async () => {
     superagent.delete(`${endpointBaseUrl}/${resourceSlug}`)
       .then(res => res.body)
 
@@ -86,13 +143,36 @@ describe('integration tests', () => {
     await sleep(4500)
 
     return client.search({
-      index: Config.indexName,
+      index: Config.resourceIndexName,
       type: Config.indexType,
       body: {
         query: {
           term: {
             _id: {
               value: resourceSlug
+            }
+          }
+        }
+      }
+    }).then(response => {
+      expect(response.hits.total).toEqual(0)
+    })
+  })
+  test('deleted Trellis resource template is removed from resource template index', async () => {
+    superagent.delete(`${endpointBaseUrl}/${nonRdfSlug}`)
+      .then(res => res.body)
+
+    // Give the pipeline a chance to run
+    await sleep(4500)
+
+    return client.search({
+      index: Config.nonRdfIndexName,
+      type: Config.indexType,
+      body: {
+        query: {
+          term: {
+            _id: {
+              value: nonRdfSlug
             }
           }
         }
