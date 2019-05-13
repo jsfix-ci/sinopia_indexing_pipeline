@@ -1,7 +1,7 @@
 import elasticsearch from 'elasticsearch'
 import Url from 'url-parse'
-import Config from './config'
-import Logger from './logger'
+import Config from './Config'
+import Logger from './Logger'
 
 export default class Indexer {
   constructor() {
@@ -40,6 +40,7 @@ export default class Indexer {
   /**
    * Uses client to delete index entry
    * @param {string} uri - URI of object to be indexed
+   * @param {string} types - one or more LDP type URIs
    * @returns {?boolean} true if successful; null if not
    * @param {string} types - one or more LDP type URIs
    */
@@ -56,6 +57,21 @@ export default class Indexer {
       this.logger.error(`error deleting: ${err.message}`)
       return null
     })
+  }
+
+  /**
+   * Remove and recreate all known indices
+   * @returns {null}
+   */
+  async recreateIndices() {
+    try {
+      await this.client.indices.delete({ index: '_all' })
+      await this.client.indices.create({ index: Config.resourceIndexName })
+      await this.client.indices.create({ index: Config.nonRdfIndexName })
+    } catch(error) {
+      this.logger.error(`error recreating indices: ${error}`)
+    }
+    return null
   }
 
   /**

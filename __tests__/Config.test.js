@@ -1,11 +1,11 @@
-import Config from '../src/config'
+import Config from '../src/Config'
 
 const OLD_ENV = process.env
 
 describe('Config', () => {
   describe('with default values', () => {
     test('platformUrl has default value', () => {
-      expect(Config.platformUrl).toEqual('http://platform:8080')
+      expect(Config.platformUrl).toEqual('http://localhost:8080')
     })
     test('rootNodeIdentifier has default value', () => {
       expect(Config.rootNodeIdentifier).toEqual('__root_node__')
@@ -111,6 +111,20 @@ describe('Config', () => {
     })
     test('debug has overridden value', () => {
       expect(Config.debug).toEqual(false)
+    })
+  })
+  describe('with variables that have a different value inside containerland', () => {
+    // Strategy for stubbing `process.env`: https://stackoverflow.com/a/48042799
+    beforeEach(() => {
+      process.env = {
+        INSIDE_CONTAINER: true
+      }
+    })
+    afterEach(() => {
+      process.env = OLD_ENV
+    })
+    test('platformUrl has overridden value', () => {
+      expect(Config.platformUrl).toEqual('http://platform:8080')
     })
   })
 })

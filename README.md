@@ -10,6 +10,8 @@ This is the repository for the Sinopia Indexing Pipeline. The pipeline is a Node
 * Dereferences the URI, asking for a JSON-LD representation.
 * Indexes the JSON-LD, or a derivative thereof, in ElasticSearch.
 
+The pipeline also includes a `bin/reindex` task that will wipe ElasticSearch and reindex Trellis by crawling the tree of resources contained within Trellis.
+
 ## Testing
 
 Using `docker-compose`, you can spin up containers for Trellis, ActiveMQ, ElasticSearch, Postgres, and the pipeline::

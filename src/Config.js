@@ -1,6 +1,12 @@
 export default class Config {
   static get platformUrl() {
-    return process.env.TRELLIS_BASE_URL || 'http://platform:8080'
+    // If configured in environment (hence, prod-like), use that value
+    if (process.env.TRELLIS_BASE_URL)
+      return process.env.TRELLIS_BASE_URL
+
+    // Else, we're in a dev/test env, so use localhost if not in container, or
+    // container value if in container
+    return Boolean(process.env.INSIDE_CONTAINER) ? 'http://platform:8080' : 'http://localhost:8080'
   }
 
   static get rootNodeIdentifier() {

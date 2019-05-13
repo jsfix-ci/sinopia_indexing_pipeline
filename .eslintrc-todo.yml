@@ -1,11 +1,6 @@
 overrides:
   -
     rules:
-      no-global-assign: off
-    files:
-      - runner.js
-  -
-    rules:
       no-extra-boolean-cast: off
     files:
-      - __tests__/pipeline.integration.js
+      - src/Config.js

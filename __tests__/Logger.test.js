@@ -1,8 +1,8 @@
-import Config from '../src/config'
-import Logger from '../src/logger'
+import Config from '../src/Config'
+import Logger from '../src/Logger'
 
 // This allows us to set the value of `Config.debug` in our tests
-jest.mock('../src/config')
+jest.mock('../src/Config')
 
 describe('Logger', () => {
   const testMessage = 'this is a test'

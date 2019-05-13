@@ -1,6 +1,6 @@
 import elasticsearch from 'elasticsearch'
 import superagent from 'superagent'
-import Config from '../src/config'
+import Config from '../src/Config'
 
 describe('integration tests', () => {
   const client = new elasticsearch.Client({
@@ -11,8 +11,6 @@ describe('integration tests', () => {
   const resourceTitle = 'A cool title'
   const nonRdfSlug = 'resourceTemplate:foo123:Something:Excellent'
   const nonRdfBody = { foo: 'bar', baz: 'quux' }
-  // Use localhost if not in container, else use configured value
-  const endpointBaseUrl = Boolean(process.env.INSIDE_CONTAINER) ? Config.platformUrl : 'http://localhost:8080'
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
   const createIndexIfAbsent = async indexName => {
     const indexExists = await client.indices.exists({ index: indexName })
@@ -76,7 +74,7 @@ describe('integration tests', () => {
     })
   })
   test('new Trellis resource is indexed', async () => {
-    superagent.post(endpointBaseUrl)
+    superagent.post(Config.platformUrl)
       .type('application/ld+json')
       .send(`{ "@context": { "dcterms": "http://purl.org/dc/terms/" }, "@id": "", "dcterms:title": "${resourceTitle}" }`)
       .set('Link', '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"')
@@ -106,7 +104,7 @@ describe('integration tests', () => {
     })
   })
   test('new Trellis resource template is indexed', async () => {
-    superagent.post(endpointBaseUrl)
+    superagent.post(Config.platformUrl)
       .type('application/json')
       .send(nonRdfBody)
       .set('Link', '<http://www.w3.org/ns/ldp#NonRDFSource>; rel="type"')
@@ -136,7 +134,7 @@ describe('integration tests', () => {
     })
   })
   test('deleted Trellis resource is removed from resource index', async () => {
-    superagent.delete(`${endpointBaseUrl}/${resourceSlug}`)
+    superagent.delete(`${Config.platformUrl}/${resourceSlug}`)
       .then(res => res.body)
 
     // Give the pipeline a chance to run
@@ -159,7 +157,7 @@ describe('integration tests', () => {
     })
   })
   test('deleted Trellis resource template is removed from resource template index', async () => {
-    superagent.delete(`${endpointBaseUrl}/${nonRdfSlug}`)
+    superagent.delete(`${Config.platformUrl}/${nonRdfSlug}`)
       .then(res => res.body)
 
     // Give the pipeline a chance to run

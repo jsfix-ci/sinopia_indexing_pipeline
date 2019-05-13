@@ -1,12 +1,11 @@
 import mockConsole from 'jest-mock-console'
 import superagent from 'superagent'
-import Config from '../src/config'
-import Logger from '../src/logger'
-import Request from '../src/request'
+import Logger from '../src/Logger'
+import Request from '../src/Request'
 
 // Mocks to avoid making real HTTP requests
-import AgentSuccessFake from '../__mocks__/agent-success-fake'
-import AgentFailureFake from '../__mocks__/agent-failure-fake'
+import AgentFailureFake from '../__mocks__/AgentFailureFake'
+import AgentSuccessFake from '../__mocks__/AgentSuccessFake'
 
 // Outermost-scope variable to support mocking/restoring the `console` object
 let restoreConsole = null
@@ -22,21 +21,26 @@ describe('Request', () => {
     test('sets this.logger', () => {
       expect(request.logger).toBeInstanceOf(Logger)
     })
-    test('sets this.mimeType to config value', () => {
-      expect(request.mimeType).toEqual(Config.defaultMimeType)
-    })
     test('sets this.agent', () => {
       expect(request.agent).toBeInstanceOf(superagent.Request)
     })
-    describe('with mimeType param', () => {
+    describe('with optional typeURIs param', () => {
       test('overrides default this.mimeType', () => {
-        const override = 'text/plain'
+        const typeURIs = ['http://foo.bar', 'http://www.w3.org/ns/ldp#NonRDFSource']
 
-        expect(new Request(uri, override).mimeType).toEqual(override)
+        expect(new Request(uri, typeURIs).agent.header.Accept).toEqual('application/json')
       })
     })
   })
-  describe('body()', () => {
+  describe('mimeTypeFrom()', () => {
+    test('returns the default mime type by default', () => {
+      expect(request.mimeTypeFrom([])).toBe('application/ld+json')
+    })
+    test('returns the non RDF mime type when types includes LDP-NRS', () => {
+      expect(request.mimeTypeFrom(['http://www.w3.org/ns/ldp#NonRDFSource'])).toBe('application/json')
+    })
+  })
+  describe('response()', () => {
     beforeAll(() => {
       // Eat console output
       restoreConsole = mockConsole(['error', 'debug'])
@@ -50,11 +54,11 @@ describe('Request', () => {
       beforeAll(() => {
         request.agent = new AgentSuccessFake(expectedBody)
       })
-      test('returns the response body', () => {
+      test('returns the response', () => {
         // the `return` statement is required here: https://jestjs.io/docs/en/asynchronous#promises
-        return request.body()
+        return request.response()
           .then(response => {
-            expect(response).toEqual(expectedBody)
+            expect(response.body).toEqual(expectedBody)
           })
       })
     })
@@ -67,7 +71,7 @@ describe('Request', () => {
       })
       test('logs the error and returns null', () => {
         // the `return` statement is required here: https://jestjs.io/docs/en/asynchronous#promises
-        return request.body(errorMessage)
+        return request.response(errorMessage)
           .then(response => {
             expect(response).toEqual(null)
             expect(logSpy).toHaveBeenCalledWith(`error resolving ${uri}: ${errorMessage}`)

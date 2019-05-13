@@ -1,17 +1,17 @@
 import mockConsole from 'jest-mock-console'
-import Indexer from '../src/indexer'
-import Listener from '../src/listener'
-import Logger from '../src/logger'
-import Pipeline from '../src/pipeline'
+import Indexer from '../src/Indexer'
+import Listener from '../src/Listener'
+import Logger from '../src/Logger'
+import Pipeline from '../src/Pipeline'
 
 // This monstrosity mocks out the Request instance created in the pipeline,
 // preventing it from attempting to hit Trellis. It mimics a successful request.
-jest.mock('../src/request', () => {
+jest.mock('../src/Request', () => {
   return jest.fn().mockImplementation(() => {
     return {
-      body: jest.fn().mockImplementation(() => {
+      response: jest.fn().mockImplementation(() => {
         return new Promise((resolve, _reject) => {
-          return resolve({ foo: 'bar' })
+          return resolve({ body: { foo: 'bar'} })
         })
       })
     }
@@ -19,8 +19,8 @@ jest.mock('../src/request', () => {
 })
 
 // Mock out dependencies to avoid testing implementation details
-import ListenerFake from '../__mocks__/listener-fake'
-import ClientSuccessFake from '../__mocks__/client-success-fake'
+import ListenerFake from '../__mocks__/ListenerFake'
+import ClientSuccessFake from '../__mocks__/ClientSuccessFake'
 
 // Outermost-scope variable to support mocking/restoring the `console` object
 let restoreConsole = null
@@ -32,21 +32,16 @@ describe('Pipeline', () => {
     test('sets this.listener', () => {
       expect(pipeline.listener).toBeInstanceOf(Listener)
     })
+
     test('sets this.logger', () => {
       expect(pipeline.logger).toBeInstanceOf(Logger)
     })
+
     test('sets this.indexer', () => {
       expect(pipeline.indexer).toBeInstanceOf(Indexer)
     })
   })
-  describe('mimeTypeFrom()', () => {
-    test('returns the default mime type by default', () => {
-      expect(pipeline.mimeTypeFrom([])).toBe('application/ld+json')
-    })
-    test('returns the non RDF mime type when types includes LDP-NRS', () => {
-      expect(pipeline.mimeTypeFrom(['http://www.w3.org/ns/ldp#NonRDFSource'])).toBe('application/json')
-    })
-  })
+
   describe('run()', () => {
     const logSpy = jest.spyOn(pipeline.logger, 'debug')
     const errorSpy = jest.spyOn(pipeline.logger, 'error')
@@ -88,13 +83,12 @@ describe('Pipeline', () => {
       expect(logSpy).toHaveBeenCalledWith(`resource ${objectUri} needs indexing`)
     })
     describe('when request fails', () => {
-      test.skip('logs an error foo', () => {
-        // TODO: Figure out why even when Request().body() is mocked to reject
-        //       (in an immediate `beforeAll`), the expectation fails
-        //
-        // pipeline.run()
-        // expect(errorSpy).toHaveBeenCalledWith(`error processing ${objectUri}: Trellis is down`)
-      })
+      // TODO: Figure out why even when Request().response() is mocked to reject
+      //       (in an immediate `beforeAll`), the expectation fails
+      //
+      // pipeline.run()
+      // expect(errorSpy).toHaveBeenCalledWith(`error processing ${objectUri}: Trellis is down`)
+      test.todo('logs an error foo')
     })
     describe('when handling deletes', () => {
       const fakeBody = JSON.stringify({

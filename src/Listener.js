@@ -1,6 +1,6 @@
 import Stomp from 'stomp-client'
-import Config from './config'
-import Logger from './logger'
+import Config from './Config'
+import Logger from './Logger'
 
 export default class Listener {
   constructor() {

@@ -1,15 +1,15 @@
 import mockConsole from 'jest-mock-console'
-import Config from '../src/config'
-import Indexer from '../src/indexer'
-import Logger from '../src/logger'
+import Config from '../src/Config'
+import Indexer from '../src/Indexer'
+import Logger from '../src/Logger'
 
 // Mocks to avoid hitting ElasticSearch
-import ClientSuccessFake from '../__mocks__/client-success-fake'
-import ClientFailureFake from '../__mocks__/client-failure-fake'
-import ClientErrorFake from '../__mocks__/client-error-fake'
+import ClientErrorFake from '../__mocks__/ClientErrorFake'
+import ClientFailureFake from '../__mocks__/ClientFailureFake'
+import ClientSuccessFake from '../__mocks__/ClientSuccessFake'
 
 // Outermost-scope variable to support mocking/restoring the `console` object
-let restoreConsole = null
+let restoreConsole
 
 describe('Indexer', () => {
   const indexer = new Indexer()
@@ -17,17 +17,17 @@ describe('Indexer', () => {
   const objectTypes = ['http://www.w3.org/ns/ldp#BasicContainer']
 
   describe('constructor()', () => {
-    test('creates a client with a hostname', () => {
+    it('creates a client with a hostname', () => {
       const host = `${Config.indexHost}:${Config.indexPort}`
       expect(indexer.client.transport._config.host).toEqual(host)
     })
-    test('creates a logger', () => {
+    it('creates a logger', () => {
       expect(indexer.logger).toBeInstanceOf(Logger)
     })
-    test('creates known index results', () => {
+    it('creates known index results', () => {
       expect(indexer.knownIndexResults).toEqual(['created', 'updated'])
     })
-    test('creates known delete results', () => {
+    it('creates known delete results', () => {
       expect(indexer.knownDeleteResults).toEqual(['deleted'])
     })
   })
@@ -44,7 +44,7 @@ describe('Indexer', () => {
     afterAll(() => {
       restoreConsole()
     })
-    test('calls index() on the client', () => {
+    it('calls index() on the client', () => {
       indexer.index(json, objectUri, objectTypes)
       expect(indexSpy).toHaveBeenCalledWith({
         index: Config.resourceIndexName,
@@ -54,7 +54,7 @@ describe('Indexer', () => {
       })
     })
     describe('when indexing succeeds', () => {
-      test('returns true', () => {
+      it('returns true', () => {
         return indexer.index(json, objectUri, objectTypes)
           .then(result => {
             expect(result).toEqual(true)
@@ -68,7 +68,7 @@ describe('Indexer', () => {
       beforeEach(() => {
         indexer.client = clientMock
       })
-      test('throws and logs an error', () => {
+      it('throws and logs an error', () => {
         return indexer.index(json, objectUri, objectTypes)
           .then(() => {
             expect(logSpy).toHaveBeenCalledWith('error indexing: {}')
@@ -82,7 +82,7 @@ describe('Indexer', () => {
       beforeEach(() => {
         indexer.client = clientMock
       })
-      test('logs the error', async () => {
+      it('logs the error', async () => {
         expect.assertions(1)
         await indexer.index(json, objectUri, objectTypes)
         expect(logSpy).toHaveBeenCalledWith('error indexing: what a useful error message this is')
@@ -103,7 +103,7 @@ describe('Indexer', () => {
     afterAll(() => {
       restoreConsole()
     })
-    test('calls delete() on the client', () => {
+    it('calls delete() on the client', () => {
       indexer.delete(objectUri, objectTypes)
       expect(deleteSpy).toHaveBeenCalledWith({
         index: Config.resourceIndexName,
@@ -112,7 +112,7 @@ describe('Indexer', () => {
       })
     })
     describe('when delete succeeds', () => {
-      test('returns true', () => {
+      it('returns true', () => {
         return indexer.delete(objectUri, objectTypes)
           .then(result => {
             expect(result).toEqual(true)
@@ -126,7 +126,7 @@ describe('Indexer', () => {
       beforeEach(() => {
         indexer.client = clientMock
       })
-      test('throws and logs an error', () => {
+      it('throws and logs an error', () => {
         return indexer.delete(objectUri, objectTypes)
           .then(() => {
             expect(logSpy).toHaveBeenCalledWith('error deleting: {}')
@@ -140,10 +140,49 @@ describe('Indexer', () => {
       beforeEach(() => {
         indexer.client = clientMock
       })
-      test('logs the error', async () => {
+      it('logs the error', async () => {
         expect.assertions(1)
         await indexer.delete(objectUri, objectTypes)
         expect(logSpy).toHaveBeenCalledWith('error deleting: what a useful error message this is')
+      })
+    })
+  })
+  describe('recreateIndices()', () => {
+    const logSpy = jest.spyOn(indexer.logger, 'error')
+
+    describe('when successful', () => {
+      const clientMock = new ClientSuccessFake()
+      const deleteSpy = jest.spyOn(clientMock.indices, 'delete')
+      const createSpy = jest.spyOn(clientMock.indices, 'create')
+
+      beforeEach(() => {
+        indexer.client = clientMock
+      })
+      it('does not log an error', async () => {
+        await indexer.recreateIndices()
+        expect(createSpy).toHaveBeenCalledTimes(2)
+        expect(deleteSpy).toHaveBeenCalledTimes(1)
+        expect(logSpy).not.toHaveBeenCalled()
+      })
+    })
+    describe('when erroring', () => {
+      const clientMock = new ClientErrorFake()
+      const deleteSpy = jest.spyOn(clientMock.indices, 'delete')
+
+      beforeEach(() => {
+        indexer.client = clientMock
+      })
+      beforeAll(() => {
+        // Eat console output
+        restoreConsole = mockConsole(['error', 'debug'])
+      })
+      afterAll(() => {
+        restoreConsole()
+      })
+      it('logs an error', async () => {
+        await indexer.recreateIndices()
+        expect(deleteSpy).toHaveBeenCalledTimes(1)
+        expect(logSpy).toHaveBeenCalledWith('error recreating indices: could not delete indices')
       })
     })
   })
@@ -155,20 +194,20 @@ describe('Indexer', () => {
     afterAll(() => {
       restoreConsole()
     })
-    test('removes URI scheme/host/port', () => {
+    it('removes URI scheme/host/port', () => {
       expect(indexer.identifierFrom('https://localhost:8080/one-two-three')).toBe('one-two-three')
     })
     describe('with a pathless URI', () => {
-      test('returns pre-configured value', () => {
+      it('returns pre-configured value', () => {
         expect(indexer.identifierFrom('https://localhost:8080/')).toBe(Config.rootNodeIdentifier)
       })
     })
   })
   describe('indexNameFrom()', () => {
-    test('returns the resource index name by default', () => {
+    it('returns the resource index name by default', () => {
       expect(indexer.indexNameFrom([])).toBe('sinopia_resources')
     })
-    test('returns the non RDF index name when types includes LDP-NRS', () => {
+    it('returns the non RDF index name when types includes LDP-NRS', () => {
       expect(indexer.indexNameFrom(['http://www.w3.org/ns/ldp#NonRDFSource'])).toBe('sinopia_templates')
     })
   })
