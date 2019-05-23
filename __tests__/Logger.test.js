@@ -25,7 +25,7 @@ describe('Logger', () => {
     })
     describe('with debug set to false', () => {
       beforeAll(() => {
-        Config.debug =  false
+        Config.debug = false
       })
       test('console.debug is not called', () => {
         logger.debug(testMessage)

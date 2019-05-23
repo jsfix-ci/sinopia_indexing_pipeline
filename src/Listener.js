@@ -4,8 +4,15 @@ import Logger from './Logger'
 
 export default class Listener {
   constructor() {
+    const stompOptions = {
+      host: Config.brokerHost,
+      port: Config.brokerPort
+    }
+    if (Config.brokerTlsEnabled)
+      stompOptions.tls = true
+
+    this.client = new Stomp(stompOptions)
     this.logger = new Logger()
-    this.client = new Stomp(Config.brokerHost, Config.brokerPort)
   }
 
   /**

@@ -16,6 +16,9 @@ describe('Config', () => {
     test('brokerPort has default value', () => {
       expect(Config.brokerPort).toEqual(61613)
     })
+    test('brokerTlsEnabled has default value', () => {
+      expect(Config.brokerTlsEnabled).toEqual(false)
+    })
     test('queueName has default value', () => {
       expect(Config.queueName).toEqual('/queue/trellis')
     })
@@ -55,6 +58,7 @@ describe('Config', () => {
         ROOT_NODE_IDENTIFIER: 'super_cool',
         BROKER_HOST: 'myhost',
         BROKER_PORT: 61616,
+        BROKER_TLS_ENABLED: 'true',
         QUEUE_NAME: '/topic/foobar',
         DEFAULT_MIME_TYPE: 'text/plain',
         RESOURCE_INDEX_NAME: 'test',
@@ -81,6 +85,9 @@ describe('Config', () => {
     })
     test('brokerPort has overridden value', () => {
       expect(Config.brokerPort).toEqual(61616)
+    })
+    test('brokerTlsEnabled has overridden value', () => {
+      expect(Config.brokerTlsEnabled).toEqual(true)
     })
     test('queueName has overridden value', () => {
       expect(Config.queueName).toEqual('/topic/foobar')

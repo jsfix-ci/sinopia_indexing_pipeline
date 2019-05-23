@@ -21,6 +21,12 @@ export default class Config {
     return process.env.BROKER_PORT || 61613
   }
 
+  static get brokerTlsEnabled() {
+    if (process.env.BROKER_TLS_ENABLED === 'true')
+      return true
+    return false
+  }
+
   static get queueName() {
     return process.env.QUEUE_NAME || '/queue/trellis'
   }
