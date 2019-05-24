@@ -55,12 +55,8 @@ export default class Config {
     return process.env.INDEX_TYPE || 'sinopia'
   }
 
-  static get indexHost() {
-    return process.env.INDEX_HOST || 'localhost'
-  }
-
-  static get indexPort() {
-    return process.env.INDEX_PORT || 9200
+  static get indexUrl() {
+    return process.env.INDEX_URL || 'http://localhost:9200'
   }
 
   static get nonRdfTypeURI() {

@@ -40,11 +40,8 @@ describe('Config', () => {
     test('indexType has default value', () => {
       expect(Config.indexType).toEqual('sinopia')
     })
-    test('indexHost has default value', () => {
-      expect(Config.indexHost).toEqual('localhost')
-    })
-    test('indexPort has default value', () => {
-      expect(Config.indexPort).toEqual(9200)
+    test('indexUrl has default value', () => {
+      expect(Config.indexUrl).toEqual('http://localhost:9200')
     })
     test('nonRdfTypeURI has default value', () => {
       expect(Config.nonRdfTypeURI).toEqual('http://www.w3.org/ns/ldp#NonRDFSource')
@@ -72,8 +69,7 @@ describe('Config', () => {
         RESOURCE_INDEX_NAME: 'test',
         INDEX_TYPE: 'other',
         NON_RDF_INDEX_NAME: 'test2',
-        INDEX_HOST: 'otherhost',
-        INDEX_PORT: 9300,
+        INDEX_URL: 'https://otherhost:9300',
         NON_RDF_TYPE_URI: 'http://foo.example.org/bar',
         NON_RDF_MIME_TYPE: 'text/plain',
         DEBUG: false
@@ -118,11 +114,8 @@ describe('Config', () => {
     test('indexType has overridden value', () => {
       expect(Config.indexType).toEqual('other')
     })
-    test('indexHost has overridden value', () => {
-      expect(Config.indexHost).toEqual('otherhost')
-    })
-    test('indexPort has overridden value', () => {
-      expect(Config.indexPort).toEqual(9300)
+    test('indexUrl has overridden value', () => {
+      expect(Config.indexUrl).toEqual('https://otherhost:9300')
     })
     test('nonRdfTypeURI has overridden value', () => {
       expect(Config.nonRdfTypeURI).toEqual('http://foo.example.org/bar')

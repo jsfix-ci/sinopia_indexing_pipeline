@@ -4,7 +4,7 @@ import Config from '../src/Config'
 
 describe('integration tests', () => {
   const client = new elasticsearch.Client({
-    host: `${Config.indexHost}:${Config.indexPort}`,
+    host: Config.indexUrl,
     log: 'warning'
   })
   const resourceSlug = 'stanford12345'

@@ -6,7 +6,8 @@ export default class Waiter {
   constructor(options = {}) {
     this.options = {
       resources: [
-        `tcp:${Config.indexHost}:${Config.indexPort}`,
+        // indexUrl begins with `http[s]`, so the `tcp:` prefix is not needed
+        Config.indexUrl,
         `tcp:${Config.brokerHost}:${Config.brokerPort}`
       ],
       log: true, // print status reports
