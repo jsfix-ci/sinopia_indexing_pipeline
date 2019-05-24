@@ -20,7 +20,18 @@ describe('Listener', () => {
     test('sets this.client', () => {
       expect(listener.client).toBeInstanceOf(Stomp)
     })
+    test('does not turn on TLS unless enabled in configuration', () => {
+      const configSpy = jest.spyOn(Config, 'brokerTlsEnabled', 'get').mockReturnValue(false)
+      expect(new Listener().client.tls).toBeUndefined()
+      configSpy.mockRestore()
+    })
+    test('turns on TLS when enabled in configuration', () => {
+      const configSpy = jest.spyOn(Config, 'brokerTlsEnabled', 'get').mockReturnValue(true)
+      expect(new Listener().client.tls.tls).toEqual(true)
+      configSpy.mockRestore()
+    })
   })
+
   describe('listen()', () => {
     const newMessageHandler = jest.fn()
     const logSpy = jest.spyOn(listener.logger, 'debug')

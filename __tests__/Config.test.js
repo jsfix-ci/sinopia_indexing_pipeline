@@ -16,6 +16,12 @@ describe('Config', () => {
     test('brokerPort has default value', () => {
       expect(Config.brokerPort).toEqual(61613)
     })
+    test('brokerUsername has default value', () => {
+      expect(Config.brokerUsername).toEqual(undefined)
+    })
+    test('brokerPassword has default value', () => {
+      expect(Config.brokerPassword).toEqual(undefined)
+    })
     test('brokerTlsEnabled has default value', () => {
       expect(Config.brokerTlsEnabled).toEqual(false)
     })
@@ -58,6 +64,8 @@ describe('Config', () => {
         ROOT_NODE_IDENTIFIER: 'super_cool',
         BROKER_HOST: 'myhost',
         BROKER_PORT: 61616,
+        BROKER_USERNAME: 'sinopia',
+        BROKER_PASSWORD: 'bestever',
         BROKER_TLS_ENABLED: 'true',
         QUEUE_NAME: '/topic/foobar',
         DEFAULT_MIME_TYPE: 'text/plain',
@@ -85,6 +93,12 @@ describe('Config', () => {
     })
     test('brokerPort has overridden value', () => {
       expect(Config.brokerPort).toEqual(61616)
+    })
+    test('brokerUsername has overridden value', () => {
+      expect(Config.brokerUsername).toEqual('sinopia')
+    })
+    test('brokerPassword has overridden value', () => {
+      expect(Config.brokerPassword).toEqual('bestever')
     })
     test('brokerTlsEnabled has overridden value', () => {
       expect(Config.brokerTlsEnabled).toEqual(true)
