@@ -24,7 +24,7 @@ services:
     build:
       context: .
     environment:
-      INDEX_HOST: search
+      INDEX_URL: http://search:9200
       BROKER_HOST: broker
     depends_on:
       - broker
@@ -34,7 +34,7 @@ services:
     build:
       context: .
     environment:
-      INDEX_HOST: search
+      INDEX_URL: http://search:9200
       BROKER_HOST: broker
       INSIDE_CONTAINER: 'true'
     command: dockerize -wait tcp://broker:61613 -wait tcp://search:9200 -wait tcp://platform:8080 -timeout 3m npm run integration
@@ -45,7 +45,7 @@ services:
       context: .
     environment:
       TRELLIS_BASE_URL: http://platform:8080
-      INDEX_HOST: search
+      INDEX_URL: http://search:9200
       BROKER_HOST: broker
       INSIDE_CONTAINER: 'true'
     command: bin/reindex

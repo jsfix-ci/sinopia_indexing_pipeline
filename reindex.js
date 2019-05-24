@@ -5,7 +5,7 @@ import Waiter from './src/Waiter'
 const waitOptions = {
   resources: [
     Config.platformUrl,
-    `tcp:${Config.indexHost}:${Config.indexPort}`
+    Config.indexUrl
   ]
 }
 

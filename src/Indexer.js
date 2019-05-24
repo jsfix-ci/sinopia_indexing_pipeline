@@ -6,7 +6,7 @@ import Logger from './Logger'
 export default class Indexer {
   constructor() {
     this.client = new elasticsearch.Client({
-      host: `${Config.indexHost}:${Config.indexPort}`,
+      host: Config.indexUrl,
       log: 'warning'
     })
     this.logger = new Logger()

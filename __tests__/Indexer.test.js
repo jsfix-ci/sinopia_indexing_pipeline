@@ -17,9 +17,8 @@ describe('Indexer', () => {
   const objectTypes = ['http://www.w3.org/ns/ldp#BasicContainer']
 
   describe('constructor()', () => {
-    it('creates a client with a hostname', () => {
-      const host = `${Config.indexHost}:${Config.indexPort}`
-      expect(indexer.client.transport._config.host).toEqual(host)
+    it('creates a client with the configured endpoint URL', () => {
+      expect(indexer.client.transport._config.host).toEqual(Config.indexUrl)
     })
     it('creates a logger', () => {
       expect(indexer.logger).toBeInstanceOf(Logger)
