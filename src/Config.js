@@ -21,6 +21,14 @@ export default class Config {
     return process.env.BROKER_PORT || 61613
   }
 
+  static get brokerUsername() {
+    return process.env.BROKER_USERNAME
+  }
+
+  static get brokerPassword() {
+    return process.env.BROKER_PASSWORD
+  }
+
   static get brokerTlsEnabled() {
     if (process.env.BROKER_TLS_ENABLED === 'true')
       return true

@@ -6,8 +6,11 @@ export default class Listener {
   constructor() {
     const stompOptions = {
       host: Config.brokerHost,
-      port: Config.brokerPort
+      port: Config.brokerPort,
+      user: Config.brokerUsername,
+      pass: Config.brokerPassword
     }
+
     if (Config.brokerTlsEnabled)
       stompOptions.tls = true
 
