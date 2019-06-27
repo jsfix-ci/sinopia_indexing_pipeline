@@ -1,5 +1,5 @@
+import config from 'config'
 import superagent from 'superagent'
-import Config from './Config'
 import Logger from './Logger'
 
 export default class Request {
@@ -37,8 +37,8 @@ export default class Request {
    * @returns {string} MIME type
    */
   mimeTypeFrom(types) {
-    if (types.includes(Config.nonRdfTypeURI))
-      return Config.nonRdfMimeType
-    return Config.defaultMimeType
+    if (types.includes(config.nonRdfTypeURI))
+      return config.nonRdfMimeType
+    return config.defaultMimeType
   }
 }

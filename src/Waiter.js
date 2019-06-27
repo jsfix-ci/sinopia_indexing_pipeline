@@ -1,5 +1,5 @@
+import config from 'config'
 import waitOn from 'wait-on'
-import Config from './Config'
 import Logger from './Logger'
 
 export default class Waiter {
@@ -7,8 +7,8 @@ export default class Waiter {
     this.options = {
       resources: [
         // indexUrl begins with `http[s]`, so the `tcp:` prefix is not needed
-        Config.indexUrl,
-        `tcp:${Config.brokerHost}:${Config.brokerPort}`
+        config.indexUrl,
+        `tcp:${config.brokerHost}:${config.brokerPort}`
       ],
       log: true, // print status reports
       interval: 1000, // check to see whether ES and MQ are up every 5s

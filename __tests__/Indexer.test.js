@@ -1,5 +1,5 @@
+import config from 'config'
 import mockConsole from 'jest-mock-console'
-import Config from '../src/Config'
 import Indexer from '../src/Indexer'
 import Logger from '../src/Logger'
 
@@ -18,7 +18,7 @@ describe('Indexer', () => {
 
   describe('constructor()', () => {
     it('creates a client with the configured endpoint URL', () => {
-      expect(indexer.client.transport._config.host).toEqual(Config.indexUrl)
+      expect(indexer.client.transport._config.host).toEqual(config.indexUrl)
     })
     it('creates a logger', () => {
       expect(indexer.logger).toBeInstanceOf(Logger)
@@ -46,8 +46,8 @@ describe('Indexer', () => {
     it('calls index() on the client', () => {
       indexer.index(json, objectUri, objectTypes)
       expect(indexSpy).toHaveBeenCalledWith({
-        index: Config.resourceIndexName,
-        type: Config.indexType,
+        index: config.resourceIndexName,
+        type: config.indexType,
         id: '12345',
         body: json
       })
@@ -105,8 +105,8 @@ describe('Indexer', () => {
     it('calls delete() on the client', () => {
       indexer.delete(objectUri, objectTypes)
       expect(deleteSpy).toHaveBeenCalledWith({
-        index: Config.resourceIndexName,
-        type: Config.indexType,
+        index: config.resourceIndexName,
+        type: config.indexType,
         id: '12345'
       })
     })
@@ -198,7 +198,7 @@ describe('Indexer', () => {
     })
     describe('with a pathless URI', () => {
       it('returns pre-configured value', () => {
-        expect(indexer.identifierFrom('https://localhost:8080/')).toBe(Config.rootNodeIdentifier)
+        expect(indexer.identifierFrom('https://localhost:8080/')).toBe(config.rootNodeIdentifier)
       })
     })
   })

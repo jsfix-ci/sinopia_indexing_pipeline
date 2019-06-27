@@ -1,11 +1,11 @@
-import Config from './src/Config'
+import config from 'config'
 import Reindexer from './src/Reindexer'
 import Waiter from './src/Waiter'
 
 const waitOptions = {
   resources: [
-    Config.platformUrl,
-    Config.indexUrl
+    config.platformUrl,
+    config.indexUrl
   ]
 }
 

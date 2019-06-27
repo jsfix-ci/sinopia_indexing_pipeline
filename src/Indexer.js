@@ -1,19 +1,19 @@
+import config from 'config'
 import elasticsearch from 'elasticsearch'
 import { JSONPath } from 'jsonpath-plus'
 import Url from 'url-parse'
-import Config from './Config'
 import Logger from './Logger'
 
 export default class Indexer {
   constructor() {
     this.client = new elasticsearch.Client({
-      host: Config.indexUrl,
+      host: config.indexUrl,
       log: 'warning'
     })
     this.logger = new Logger()
     this.knownIndexResults = ['created', 'updated']
     this.knownDeleteResults = ['deleted']
-    this.indices = [Config.resourceIndexName, Config.nonRdfIndexName]
+    this.indices = [config.resourceIndexName, config.nonRdfIndexName]
   }
 
   /**
@@ -26,7 +26,7 @@ export default class Indexer {
   index(json, uri, types) {
     return this.client.index({
       index: this.indexNameFrom(types),
-      type: Config.indexType,
+      type: config.indexType,
       id: this.identifierFrom(uri),
       body: this.titlesAndSubtitlesFrom(json)
     }).then(indexResponse => {
@@ -49,7 +49,7 @@ export default class Indexer {
   delete(uri, types) {
     return this.client.delete({
       index: this.indexNameFrom(types),
-      type: Config.indexType,
+      type: config.indexType,
       id: this.identifierFrom(uri)
     }).then(indexResponse => {
       if (!this.knownDeleteResults.includes(indexResponse.result))
@@ -76,7 +76,7 @@ export default class Indexer {
 
         await this.client.indices.putMapping({
           index: index,
-          type: Config.indexType,
+          type: config.indexType,
           body: {
             properties: {
               title: {
@@ -118,7 +118,7 @@ export default class Indexer {
    */
   identifierFrom(uri) {
     // pathname looks like /baz-quux-quuux; remove the slash
-    const identifier = new Url(uri).pathname.substr(1) || Config.rootNodeIdentifier
+    const identifier = new Url(uri).pathname.substr(1) || config.rootNodeIdentifier
     this.logger.debug(`identifier from ${uri} is ${identifier}`)
     return identifier
   }
@@ -154,8 +154,8 @@ export default class Indexer {
    * @returns {string} name of index
    */
   indexNameFrom(types) {
-    if (types.includes(Config.nonRdfTypeURI))
-      return Config.nonRdfIndexName
-    return Config.resourceIndexName
+    if (types.includes(config.nonRdfTypeURI))
+      return config.nonRdfIndexName
+    return config.resourceIndexName
   }
 }
