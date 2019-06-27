@@ -5,13 +5,13 @@ import Logger from './Logger'
 export default class Listener {
   constructor() {
     const stompOptions = {
-      host: config.brokerHost,
-      port: config.brokerPort,
-      user: config.brokerUsername,
-      pass: config.brokerPassword
+      host: config.get('brokerHost'),
+      port: config.get('brokerPort'),
+      user: config.get('brokerUsername'),
+      pass: config.get('brokerPassword')
     }
 
-    if (config.brokerTlsEnabled)
+    if (config.get('brokerTlsEnabled'))
       stompOptions.tls = true
 
     this.client = new Stomp(stompOptions)
@@ -31,8 +31,8 @@ export default class Listener {
   listen(onNewMessage) {
     this.logger.debug(`connecting to stomp at ${this.client.address}:${this.client.port}`)
     this.client.connect((_sessionId) => {
-      this.logger.debug(`subscribing to ${config.queueName}, waiting for messages`)
-      this.client.subscribe(config.queueName, onNewMessage)
+      this.logger.debug(`subscribing to ${config.get('queueName')}, waiting for messages`)
+      this.client.subscribe(config.get('queueName'), onNewMessage)
     })
   }
 }

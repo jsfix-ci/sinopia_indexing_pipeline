@@ -21,13 +21,13 @@ describe('Listener', () => {
       expect(listener.client).toBeInstanceOf(Stomp)
     })
     test('does not turn on TLS unless enabled in configuration', () => {
-      const originalConfigValue = config.brokerTlsEnabled
+      const originalConfigValue = config.get('brokerTlsEnabled')
       config.brokerTlsEnabled = false
       expect(new Listener().client.tls).toBeUndefined()
       config.brokerTlsEnabled = originalConfigValue
     })
     test('turns on TLS when enabled in configuration', () => {
-      const originalConfigValue = config.brokerTlsEnabled
+      const originalConfigValue = config.get('brokerTlsEnabled')
       config.brokerTlsEnabled = true
       expect(new Listener().client.tls.tls).toEqual(true)
       config.brokerTlsEnabled = originalConfigValue
@@ -39,7 +39,7 @@ describe('Listener', () => {
     const logSpy = jest.spyOn(listener.logger, 'debug')
 
     beforeEach(() => {
-      listener.client = new BrokerFake(config.brokerHost, config.brokerPort)
+      listener.client = new BrokerFake(config.get('brokerHost'), config.get('brokerPort'))
     })
     beforeAll(() => {
       // Eat console output
@@ -50,7 +50,7 @@ describe('Listener', () => {
     })
     test('logs a debug message before connecting', () => {
       listener.listen(newMessageHandler)
-      expect(logSpy).toHaveBeenCalledWith(`connecting to stomp at ${config.brokerHost}:${config.brokerPort}`)
+      expect(logSpy).toHaveBeenCalledWith(`connecting to stomp at ${config.get('brokerHost')}:${config.get('brokerPort')}`)
     })
     test('calls connect on the client', () => {
       const clientSpy = jest.spyOn(listener.client, 'connect')
@@ -60,13 +60,13 @@ describe('Listener', () => {
     })
     test('logs a debug message before subscribing to queue', () => {
       listener.listen(newMessageHandler)
-      expect(logSpy).toHaveBeenCalledWith(`subscribing to ${config.queueName}, waiting for messages`)
+      expect(logSpy).toHaveBeenCalledWith(`subscribing to ${config.get('queueName')}, waiting for messages`)
     })
     test('subscribes to specified queue with given callback', () => {
       const clientSpy = jest.spyOn(listener.client, 'subscribe')
 
       listener.listen(newMessageHandler)
-      expect(clientSpy).toHaveBeenCalledWith(config.queueName, newMessageHandler)
+      expect(clientSpy).toHaveBeenCalledWith(config.get('queueName'), newMessageHandler)
     })
   })
 })

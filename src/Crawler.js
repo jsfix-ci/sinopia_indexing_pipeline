@@ -21,8 +21,8 @@ export default class Crawler {
    * @param {resourceCallback} onResource - Callback that handles the resource
    */
   async crawl(onResource) {
-    this.logger.debug(`connecting to Trellis at ${config.platformUrl}`)
-    await this.request(config.platformUrl, onResource)
+    this.logger.debug(`connecting to Trellis at ${config.get('platformUrl')}`)
+    await this.request(config.get('platformUrl'), onResource)
   }
 
   /**

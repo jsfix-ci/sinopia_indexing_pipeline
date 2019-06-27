@@ -6,7 +6,7 @@ export default class Logger {
    * @param {string} message - The message to be logged
    */
   debug(message) {
-    if (config.debug)
+    if (config.get('debug'))
       console.debug(message)
   }
 

@@ -7,8 +7,8 @@ export default class Waiter {
     this.options = {
       resources: [
         // indexUrl begins with `http[s]`, so the `tcp:` prefix is not needed
-        config.indexUrl,
-        `tcp:${config.brokerHost}:${config.brokerPort}`
+        config.get('indexUrl'),
+        `tcp:${config.get('brokerHost')}:${config.get('brokerPort')}`
       ],
       log: true, // print status reports
       interval: 1000, // check to see whether ES and MQ are up every 5s

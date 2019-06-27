@@ -18,7 +18,7 @@ describe('Indexer', () => {
 
   describe('constructor()', () => {
     it('creates a client with the configured endpoint URL', () => {
-      expect(indexer.client.transport._config.host).toEqual(config.indexUrl)
+      expect(indexer.client.transport._config.host).toEqual(config.get('indexUrl'))
     })
     it('creates a logger', () => {
       expect(indexer.logger).toBeInstanceOf(Logger)
@@ -33,7 +33,12 @@ describe('Indexer', () => {
   describe('index()', () => {
     const clientMock = new ClientSuccessFake()
     const indexSpy = jest.spyOn(clientMock, 'index')
-    const json = { '@id': objectUri, foo: 'bar' }
+    const json = {
+      '@id': objectUri,
+      foo: 'bar',
+      mainTitle: { '@value': 'Hamlet' },
+      subtitle: { '@value': 'A Tragic Tale about a Prince of Denmark' }
+    }
 
     beforeAll(() => {
       indexer.client = clientMock
@@ -46,10 +51,14 @@ describe('Indexer', () => {
     it('calls index() on the client', () => {
       indexer.index(json, objectUri, objectTypes)
       expect(indexSpy).toHaveBeenCalledWith({
-        index: config.resourceIndexName,
-        type: config.indexType,
+        index: config.get('resourceIndexName'),
+        type: config.get('indexType'),
         id: '12345',
-        body: json
+        body: {
+          document: json,
+          title: ['Hamlet'],
+          subtitle: ['A Tragic Tale about a Prince of Denmark']
+        }
       })
     })
     describe('when indexing succeeds', () => {
@@ -105,8 +114,8 @@ describe('Indexer', () => {
     it('calls delete() on the client', () => {
       indexer.delete(objectUri, objectTypes)
       expect(deleteSpy).toHaveBeenCalledWith({
-        index: config.resourceIndexName,
-        type: config.indexType,
+        index: config.get('resourceIndexName'),
+        type: config.get('indexType'),
         id: '12345'
       })
     })
@@ -198,7 +207,7 @@ describe('Indexer', () => {
     })
     describe('with a pathless URI', () => {
       it('returns pre-configured value', () => {
-        expect(indexer.identifierFrom('https://localhost:8080/')).toBe(config.rootNodeIdentifier)
+        expect(indexer.identifierFrom('https://localhost:8080/')).toBe(config.get('rootNodeIdentifier'))
       })
     })
   })

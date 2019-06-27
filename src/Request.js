@@ -37,8 +37,8 @@ export default class Request {
    * @returns {string} MIME type
    */
   mimeTypeFrom(types) {
-    if (types.includes(config.nonRdfTypeURI))
-      return config.nonRdfMimeType
-    return config.defaultMimeType
+    if (types.includes(config.get('nonRdfTypeURI')))
+      return config.get('nonRdfMimeType')
+    return config.get('defaultMimeType')
   }
 }

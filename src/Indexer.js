@@ -7,13 +7,13 @@ import Logger from './Logger'
 export default class Indexer {
   constructor() {
     this.client = new elasticsearch.Client({
-      host: config.indexUrl,
+      host: config.get('indexUrl'),
       log: 'warning'
     })
     this.logger = new Logger()
     this.knownIndexResults = ['created', 'updated']
     this.knownDeleteResults = ['deleted']
-    this.indices = [config.resourceIndexName, config.nonRdfIndexName]
+    this.indices = [config.get('resourceIndexName'), config.get('nonRdfIndexName')]
   }
 
   /**
@@ -26,7 +26,7 @@ export default class Indexer {
   index(json, uri, types) {
     return this.client.index({
       index: this.indexNameFrom(types),
-      type: config.indexType,
+      type: config.get('indexType'),
       id: this.identifierFrom(uri),
       body: this.buildIndexEntryFrom(json)
     }).then(indexResponse => {
@@ -49,7 +49,7 @@ export default class Indexer {
   delete(uri, types) {
     return this.client.delete({
       index: this.indexNameFrom(types),
-      type: config.indexType,
+      type: config.get('indexType'),
       id: this.identifierFrom(uri)
     }).then(indexResponse => {
       if (!this.knownDeleteResults.includes(indexResponse.result))
@@ -76,7 +76,7 @@ export default class Indexer {
 
         await this.client.indices.putMapping({
           index: index,
-          type: config.get('indexType'),
+          type: config.get('get')('indexType'),
           body: this.buildMappingsFromConfig()
         })
       }
@@ -93,9 +93,9 @@ export default class Indexer {
   buildMappingsFromConfig() {
     const mappingObject = { properties: {} }
 
-    for (const fieldName in config.indexFieldMappings) {
+    for (const fieldName in config.get('indexFieldMappings')) {
       mappingObject.properties[fieldName] = {
-        type: config.indexFieldMappings[fieldName].type
+        type: config.get('indexFieldMappings')[fieldName].type
       }
     }
 
@@ -126,7 +126,7 @@ export default class Indexer {
    */
   identifierFrom(uri) {
     // pathname looks like /baz-quux-quuux; remove the slash
-    const identifier = new Url(uri).pathname.substr(1) || config.rootNodeIdentifier
+    const identifier = new Url(uri).pathname.substr(1) || config.get('rootNodeIdentifier')
     this.logger.debug(`identifier from ${uri} is ${identifier}`)
     return identifier
   }
@@ -140,10 +140,10 @@ export default class Indexer {
     // Begin by tossing the entire object into the index, giving us more leeway to search on full documents later
     const indexObject = { document: json }
 
-    for (const fieldName in config.indexFieldMappings) {
+    for (const fieldName in config.get('indexFieldMappings')) {
       indexObject[fieldName] = JSONPath({
         json: json,
-        path: config.indexFieldMappings[fieldName].path,
+        path: config.get('indexFieldMappings')[fieldName].path,
         flatten: true
       })
         .filter(obj => obj['@value']) // Filter out fields without values, e.g., from the @context object
@@ -159,8 +159,8 @@ export default class Indexer {
    * @returns {string} name of index
    */
   indexNameFrom(types) {
-    if (types.includes(config.nonRdfTypeURI))
-      return config.nonRdfIndexName
-    return config.resourceIndexName
+    if (types.includes(config.get('nonRdfTypeURI')))
+      return config.get('nonRdfIndexName')
+    return config.get('resourceIndexName')
   }
 }

@@ -4,8 +4,8 @@ import Waiter from './src/Waiter'
 
 const waitOptions = {
   resources: [
-    config.platformUrl,
-    config.indexUrl
+    config.get('platformUrl'),
+    config.get('indexUrl')
   ]
 }
 
