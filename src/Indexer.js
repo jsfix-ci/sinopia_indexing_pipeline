@@ -28,7 +28,7 @@ export default class Indexer {
       index: this.indexNameFrom(types),
       type: config.indexType,
       id: this.identifierFrom(uri),
-      body: this.titlesAndSubtitlesFrom(json)
+      body: this.buildIndexEntryFrom(json)
     }).then(indexResponse => {
       if (!this.knownIndexResults.includes(indexResponse.result))
         throw { message: JSON.stringify(indexResponse) }
@@ -76,17 +76,8 @@ export default class Indexer {
 
         await this.client.indices.putMapping({
           index: index,
-          type: config.indexType,
-          body: {
-            properties: {
-              title: {
-                type: 'text'
-              },
-              subtitle: {
-                type: 'text'
-              }
-            }
-          }
+          type: config.get('indexType'),
+          body: this.buildMappingsFromConfig()
         })
       }
     } catch(error) {
@@ -94,6 +85,23 @@ export default class Indexer {
     }
     return null
   }
+
+  /**
+   * Build field mappings from configuration
+   * @returns {Object}
+   */
+  buildMappingsFromConfig() {
+    const mappingObject = { properties: {} }
+
+    for (const fieldName in config.indexFieldMappings) {
+      mappingObject.properties[fieldName] = {
+        type: config.indexFieldMappings[fieldName].type
+      }
+    }
+
+    return mappingObject
+  }
+
 
   /**
    * Remove and recreate all known indices
@@ -124,28 +132,25 @@ export default class Indexer {
   }
 
   /**
-   * Parses titles and subtitles out of a JSON body
+   * Builds up an index entry out of a JSON body, given index field mappings from config
    * @param {Object} json - A Trellis resource (of some kind: RDFSource, BasicContainer, NonRDFSource, etc.)
-   * @returns {Object} an object containing title and subtitle strings if any found, null if not
+   * @returns {Object} an object containing configured field values if any found
    */
-  titlesAndSubtitlesFrom(json) {
-    const titles = JSONPath({
-      json: json,
-      path: '$..mainTitle',
-      flatten: true
-    })
-      .filter(obj => obj['@value']) // Filter out hits without values, e.g., from the @context object
-      .map(obj => obj['@value']) // Extract the title value and ignore the @language for now
+  buildIndexEntryFrom(json) {
+    // Begin by tossing the entire object into the index, giving us more leeway to search on full documents later
+    const indexObject = { document: json }
 
-    const subtitles = JSONPath({
-      json: json,
-      path: '$..subtitle',
-      flatten: true
-    })
-      .filter(obj => obj['@value']) // Filter out hits without values, e.g., from the @context object
-      .map(obj => obj['@value']) // Extract the title value and ignore the @language for now
+    for (const fieldName in config.indexFieldMappings) {
+      indexObject[fieldName] = JSONPath({
+        json: json,
+        path: config.indexFieldMappings[fieldName].path,
+        flatten: true
+      })
+        .filter(obj => obj['@value']) // Filter out fields without values, e.g., from the @context object
+        .map(obj => obj['@value']) // Extract the value and ignore the @language for now (this is currently coupled to how titles are modeled)
+    }
 
-    return { title: titles, subtitle: subtitles }
+    return indexObject
   }
 
   /**

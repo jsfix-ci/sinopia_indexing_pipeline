@@ -12,7 +12,7 @@ const search = async () => {
       query: {
         multi_match: {
           query: query,
-          fields: ['title', 'subtitle']
+          fields: Object.keys(config.indexFieldMappings)
         }
       }
     }

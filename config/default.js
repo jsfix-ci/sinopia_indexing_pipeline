@@ -15,6 +15,9 @@ module.exports = {
   nonRdfIndexName: process.env.NON_RDF_INDEX_NAME || 'sinopia_templates',
   indexType: process.env.INDEX_TYPE || 'sinopia',
   indexUrl: process.env.INDEX_URL || 'http://localhost:9200',
+  indexFieldMappings: process.env.INDEX_FIELD_MAPPINGS
+    ? JSON.parse(process.env.INDEX_FIELD_MAPPINGS)
+    : { title: { type: 'text', path: '$..mainTitle' }, subtitle: { type: 'text', path: '$..subtitle' } },
   nonRdfTypeURI: process.env.NON_RDF_TYPE_URI || 'http://www.w3.org/ns/ldp#NonRDFSource',
   nonRdfMimeType: process.env.NON_RDF_MIME_TYPE || 'application/json',
   debug:  process.env.DEBUG !== undefined ? process.env.DEBUG : true
