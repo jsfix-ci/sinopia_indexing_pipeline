@@ -76,7 +76,7 @@ export default class Indexer {
 
         await this.client.indices.putMapping({
           index: index,
-          type: config.get('get')('indexType'),
+          type: config.get('indexType'),
           body: this.buildMappingsFromConfig()
         })
       }
