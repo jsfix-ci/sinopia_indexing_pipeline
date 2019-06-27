@@ -10,7 +10,10 @@ This is the repository for the Sinopia Indexing Pipeline. The pipeline is a Node
 * Dereferences the URI, asking for a JSON-LD representation.
 * Indexes the JSON-LD, or a derivative thereof, in ElasticSearch.
 
-The pipeline also includes a `bin/reindex` task that will wipe ElasticSearch and reindex Trellis by crawling the tree of resources contained within Trellis.
+The pipeline also includes:
+
+1. a `bin/reindex` command that will wipe all ElasticSearch indices and reindex Trellis by crawling the tree of resources contained within Trellis;
+1. a `bin/search` command that allows easier probing and testing of ElasticSeach indexing behavior
 
 ## Testing
 
