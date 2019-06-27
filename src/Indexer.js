@@ -1,4 +1,5 @@
 import elasticsearch from 'elasticsearch'
+import { JSONPath } from 'jsonpath-plus'
 import Url from 'url-parse'
 import Config from './Config'
 import Logger from './Logger'
@@ -12,6 +13,7 @@ export default class Indexer {
     this.logger = new Logger()
     this.knownIndexResults = ['created', 'updated']
     this.knownDeleteResults = ['deleted']
+    this.indices = [Config.resourceIndexName, Config.nonRdfIndexName]
   }
 
   /**
@@ -26,7 +28,7 @@ export default class Indexer {
       index: this.indexNameFrom(types),
       type: Config.indexType,
       id: this.identifierFrom(uri),
-      body: json
+      body: this.titlesAndSubtitlesFrom(json)
     }).then(indexResponse => {
       if (!this.knownIndexResults.includes(indexResponse.result))
         throw { message: JSON.stringify(indexResponse) }
@@ -60,14 +62,49 @@ export default class Indexer {
   }
 
   /**
+   * Create indices, if needed, and add field mappings
+   * @returns {null}
+   */
+  async setupIndices() {
+    try {
+      for (const index of this.indices) {
+        const indexExists = await this.client.indices.exists({ index: index })
+
+        if (!indexExists) {
+          await this.client.indices.create({ index: index })
+        }
+
+        await this.client.indices.putMapping({
+          index: index,
+          type: Config.indexType,
+          body: {
+            properties: {
+              title: {
+                type: 'text'
+              },
+              subtitle: {
+                type: 'text'
+              }
+            }
+          }
+        })
+      }
+    } catch(error) {
+      this.logger.error(`error setting up indices: ${error}`)
+    }
+    return null
+  }
+
+  /**
    * Remove and recreate all known indices
    * @returns {null}
    */
   async recreateIndices() {
     try {
       await this.client.indices.delete({ index: '_all' })
-      await this.client.indices.create({ index: Config.resourceIndexName })
-      await this.client.indices.create({ index: Config.nonRdfIndexName })
+      for (const index of this.indices) {
+        await this.client.indices.create({ index: index })
+      }
     } catch(error) {
       this.logger.error(`error recreating indices: ${error}`)
     }
@@ -84,6 +121,31 @@ export default class Indexer {
     const identifier = new Url(uri).pathname.substr(1) || Config.rootNodeIdentifier
     this.logger.debug(`identifier from ${uri} is ${identifier}`)
     return identifier
+  }
+
+  /**
+   * Parses titles and subtitles out of a JSON body
+   * @param {Object} json - A Trellis resource (of some kind: RDFSource, BasicContainer, NonRDFSource, etc.)
+   * @returns {Object} an object containing title and subtitle strings if any found, null if not
+   */
+  titlesAndSubtitlesFrom(json) {
+    const titles = JSONPath({
+      json: json,
+      path: '$..mainTitle',
+      flatten: true
+    })
+      .filter(obj => obj['@value']) // Filter out hits without values, e.g., from the @context object
+      .map(obj => obj['@value']) // Extract the title value and ignore the @language for now
+
+    const subtitles = JSONPath({
+      json: json,
+      path: '$..subtitle',
+      flatten: true
+    })
+      .filter(obj => obj['@value']) // Filter out hits without values, e.g., from the @context object
+      .map(obj => obj['@value']) // Extract the title value and ignore the @language for now
+
+    return { title: titles, subtitle: subtitles }
   }
 
   /**
