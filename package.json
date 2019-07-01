@@ -20,7 +20,8 @@
     "dev-start": "nodemon --exec babel-node runner.js",
     "integration": "ALLOW_CONFIG_MUTATIONS=true jest --colors --testRegex=\\.integration\\.js$",
     "lint": "eslint --color -c .eslintrc.yml --ext js .",
-    "start": "babel-node runner.js",
+    "search": "npx babel-node search.js",
+    "start": "npx babel-node runner.js",
     "test": "ALLOW_CONFIG_MUTATIONS=true jest --colors"
   },
   "dependencies": {
