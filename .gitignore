@@ -3,3 +3,6 @@ node_modules
 
 # Test coverage
 coverage
+
+# Sensitive and/or local env variables
+.env

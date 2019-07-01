@@ -5,6 +5,16 @@ export default class ClientErrorFake {
         return new Promise((_resolve, reject) => {
           return reject('could not delete indices')
         })
+      },
+      create: () => {
+        return new Promise((_resolve, reject) => {
+          return reject('could not create indices')
+        })
+      },
+      exists: () => {
+        return new Promise((resolve, _reject) => {
+          return resolve(false)
+        })
       }
     }
   }

@@ -1,8 +1,5 @@
-import Config from '../src/Config'
+import config from 'config'
 import Logger from '../src/Logger'
-
-// This allows us to set the value of `Config.debug` in our tests
-jest.mock('../src/Config')
 
 describe('Logger', () => {
   const testMessage = 'this is a test'
@@ -16,7 +13,7 @@ describe('Logger', () => {
     })
     describe('with debug set to true', () => {
       beforeAll(() => {
-        Config.debug = true
+        config.debug = true
       })
       test('console.debug is called', () => {
         logger.debug(testMessage)
@@ -25,7 +22,7 @@ describe('Logger', () => {
     })
     describe('with debug set to false', () => {
       beforeAll(() => {
-        Config.debug = false
+        config.debug = false
       })
       test('console.debug is not called', () => {
         logger.debug(testMessage)

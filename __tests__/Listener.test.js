@@ -1,6 +1,6 @@
+import config from 'config'
 import mockConsole from 'jest-mock-console'
 import Stomp from 'stomp-client'
-import Config from '../src/Config'
 import Listener from '../src/Listener'
 import Logger from '../src/Logger'
 
@@ -21,14 +21,16 @@ describe('Listener', () => {
       expect(listener.client).toBeInstanceOf(Stomp)
     })
     test('does not turn on TLS unless enabled in configuration', () => {
-      const configSpy = jest.spyOn(Config, 'brokerTlsEnabled', 'get').mockReturnValue(false)
+      const originalConfigValue = config.get('brokerTlsEnabled')
+      config.brokerTlsEnabled = false
       expect(new Listener().client.tls).toBeUndefined()
-      configSpy.mockRestore()
+      config.brokerTlsEnabled = originalConfigValue
     })
     test('turns on TLS when enabled in configuration', () => {
-      const configSpy = jest.spyOn(Config, 'brokerTlsEnabled', 'get').mockReturnValue(true)
+      const originalConfigValue = config.get('brokerTlsEnabled')
+      config.brokerTlsEnabled = true
       expect(new Listener().client.tls.tls).toEqual(true)
-      configSpy.mockRestore()
+      config.brokerTlsEnabled = originalConfigValue
     })
   })
 
@@ -37,7 +39,7 @@ describe('Listener', () => {
     const logSpy = jest.spyOn(listener.logger, 'debug')
 
     beforeEach(() => {
-      listener.client = new BrokerFake(Config.brokerHost, Config.brokerPort)
+      listener.client = new BrokerFake(config.get('brokerHost'), config.get('brokerPort'))
     })
     beforeAll(() => {
       // Eat console output
@@ -48,7 +50,7 @@ describe('Listener', () => {
     })
     test('logs a debug message before connecting', () => {
       listener.listen(newMessageHandler)
-      expect(logSpy).toHaveBeenCalledWith(`connecting to stomp at ${Config.brokerHost}:${Config.brokerPort}`)
+      expect(logSpy).toHaveBeenCalledWith(`connecting to stomp at ${config.get('brokerHost')}:${config.get('brokerPort')}`)
     })
     test('calls connect on the client', () => {
       const clientSpy = jest.spyOn(listener.client, 'connect')
@@ -58,13 +60,13 @@ describe('Listener', () => {
     })
     test('logs a debug message before subscribing to queue', () => {
       listener.listen(newMessageHandler)
-      expect(logSpy).toHaveBeenCalledWith(`subscribing to ${Config.queueName}, waiting for messages`)
+      expect(logSpy).toHaveBeenCalledWith(`subscribing to ${config.get('queueName')}, waiting for messages`)
     })
     test('subscribes to specified queue with given callback', () => {
       const clientSpy = jest.spyOn(listener.client, 'subscribe')
 
       listener.listen(newMessageHandler)
-      expect(clientSpy).toHaveBeenCalledWith(Config.queueName, newMessageHandler)
+      expect(clientSpy).toHaveBeenCalledWith(config.get('queueName'), newMessageHandler)
     })
   })
 })

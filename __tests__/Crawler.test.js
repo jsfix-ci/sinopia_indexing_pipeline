@@ -1,5 +1,5 @@
+import config from 'config'
 import mockConsole from 'jest-mock-console'
-import Config from '../src/Config'
 import Crawler from '../src/Crawler'
 import Logger from '../src/Logger'
 
@@ -42,12 +42,12 @@ describe('Crawler', () => {
     })
     it('logs a debug message', async () => {
       await crawler.crawl()
-      expect(logSpy).toHaveBeenCalledWith(`connecting to Trellis at ${Config.platformUrl}`)
+      expect(logSpy).toHaveBeenCalledWith(`connecting to Trellis at ${config.get('platformUrl')}`)
     })
     it('invokes this.request with platform URL and callback', async () => {
       await crawler.crawl(callback)
       expect(requestSpy.mock.calls.length).toEqual(1)
-      expect(requestSpy.mock.calls[0][0]).toEqual(Config.platformUrl)
+      expect(requestSpy.mock.calls[0][0]).toEqual(config.get('platformUrl'))
       expect(requestSpy.mock.calls[0][1]).toBe(callback)
     })
   })

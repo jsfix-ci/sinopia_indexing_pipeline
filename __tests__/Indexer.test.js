@@ -1,5 +1,5 @@
+import config from 'config'
 import mockConsole from 'jest-mock-console'
-import Config from '../src/Config'
 import Indexer from '../src/Indexer'
 import Logger from '../src/Logger'
 
@@ -18,40 +18,60 @@ describe('Indexer', () => {
 
   describe('constructor()', () => {
     it('creates a client with the configured endpoint URL', () => {
-      expect(indexer.client.transport._config.host).toEqual(Config.indexUrl)
+      expect(indexer.client.transport._config.host).toEqual(config.get('indexUrl'))
     })
+
     it('creates a logger', () => {
       expect(indexer.logger).toBeInstanceOf(Logger)
     })
-    it('creates known index results', () => {
+
+    it('sets known index results', () => {
       expect(indexer.knownIndexResults).toEqual(['created', 'updated'])
     })
-    it('creates known delete results', () => {
+
+    it('sets known delete results', () => {
       expect(indexer.knownDeleteResults).toEqual(['deleted'])
     })
+
+    it('sets known indices', () => {
+      expect(indexer.indices).toEqual(['sinopia_resources', 'sinopia_templates'])
+    })
   })
+
   describe('index()', () => {
     const clientMock = new ClientSuccessFake()
     const indexSpy = jest.spyOn(clientMock, 'index')
-    const json = { '@id': objectUri, foo: 'bar' }
+    const json = {
+      '@id': objectUri,
+      foo: 'bar',
+      mainTitle: { '@value': 'Hamlet' },
+      subtitle: { '@value': 'A Tragic Tale about a Prince of Denmark' }
+    }
 
     beforeAll(() => {
       indexer.client = clientMock
       // Eat console output
       restoreConsole = mockConsole(['error', 'debug'])
     })
+
     afterAll(() => {
       restoreConsole()
     })
+
     it('calls index() on the client', () => {
       indexer.index(json, objectUri, objectTypes)
       expect(indexSpy).toHaveBeenCalledWith({
-        index: Config.resourceIndexName,
-        type: Config.indexType,
+        index: config.get('resourceIndexName'),
+        type: config.get('indexType'),
         id: '12345',
-        body: json
+        body: {
+          document: json,
+          title: ['Hamlet'],
+          subtitle: ['A Tragic Tale about a Prince of Denmark']
+        }
       })
     })
+
     describe('when indexing succeeds', () => {
       it('returns true', () => {
         return indexer.index(json, objectUri, objectTypes)
@@ -60,6 +80,7 @@ describe('Indexer', () => {
           })
       })
     })
+
     describe('when indexing fails', () => {
       const clientMock = new ClientFailureFake()
       const logSpy = jest.spyOn(indexer.logger, 'error')
@@ -67,6 +88,7 @@ describe('Indexer', () => {
       beforeEach(() => {
         indexer.client = clientMock
       })
+
       it('throws and logs an error', () => {
         return indexer.index(json, objectUri, objectTypes)
           .then(() => {
@@ -74,6 +96,7 @@ describe('Indexer', () => {
           })
       })
     })
+
     describe('when indexing raises an exception', () => {
       const clientMock = new ClientErrorFake()
       const logSpy = jest.spyOn(indexer.logger, 'error')
@@ -81,6 +104,7 @@ describe('Indexer', () => {
       beforeEach(() => {
         indexer.client = clientMock
       })
+
       it('logs the error', async () => {
         expect.assertions(1)
         await indexer.index(json, objectUri, objectTypes)
@@ -88,6 +112,7 @@ describe('Indexer', () => {
       })
     })
   })
+
   describe('delete()', () => {
     const clientMock = new ClientSuccessFake()
     const deleteSpy = jest.spyOn(clientMock, 'delete')
@@ -95,21 +120,25 @@ describe('Indexer', () => {
     beforeEach(() => {
       indexer.client = clientMock
     })
+
     beforeAll(() => {
       // Eat console output
       restoreConsole = mockConsole(['error', 'debug'])
     })
+
     afterAll(() => {
       restoreConsole()
     })
+
     it('calls delete() on the client', () => {
       indexer.delete(objectUri, objectTypes)
       expect(deleteSpy).toHaveBeenCalledWith({
-        index: Config.resourceIndexName,
-        type: Config.indexType,
+        index: config.get('resourceIndexName'),
+        type: config.get('indexType'),
         id: '12345'
       })
     })
+
     describe('when delete succeeds', () => {
       it('returns true', () => {
         return indexer.delete(objectUri, objectTypes)
@@ -118,6 +147,7 @@ describe('Indexer', () => {
           })
       })
     })
+
     describe('when delete fails', () => {
       const clientMock = new ClientFailureFake()
       const logSpy = jest.spyOn(indexer.logger, 'error')
@@ -125,6 +155,7 @@ describe('Indexer', () => {
       beforeEach(() => {
         indexer.client = clientMock
       })
+
       it('throws and logs an error', () => {
         return indexer.delete(objectUri, objectTypes)
           .then(() => {
@@ -132,6 +163,7 @@ describe('Indexer', () => {
           })
       })
     })
+
     describe('when delete raises an exception', () => {
       const clientMock = new ClientErrorFake()
       const logSpy = jest.spyOn(indexer.logger, 'error')
@@ -139,6 +171,7 @@ describe('Indexer', () => {
       beforeEach(() => {
         indexer.client = clientMock
       })
+
       it('logs the error', async () => {
         expect.assertions(1)
         await indexer.delete(objectUri, objectTypes)
@@ -146,6 +179,7 @@ describe('Indexer', () => {
       })
     })
   })
+
   describe('recreateIndices()', () => {
     const logSpy = jest.spyOn(indexer.logger, 'error')
 
@@ -157,6 +191,7 @@ describe('Indexer', () => {
       beforeEach(() => {
         indexer.client = clientMock
       })
+
       it('does not log an error', async () => {
         await indexer.recreateIndices()
         expect(createSpy).toHaveBeenCalledTimes(2)
@@ -164,6 +199,7 @@ describe('Indexer', () => {
         expect(logSpy).not.toHaveBeenCalled()
       })
     })
+
     describe('when erroring', () => {
       const clientMock = new ClientErrorFake()
       const deleteSpy = jest.spyOn(clientMock.indices, 'delete')
@@ -171,13 +207,16 @@ describe('Indexer', () => {
       beforeEach(() => {
         indexer.client = clientMock
       })
+
       beforeAll(() => {
         // Eat console output
         restoreConsole = mockConsole(['error', 'debug'])
       })
+
       afterAll(() => {
         restoreConsole()
       })
+
       it('logs an error', async () => {
         await indexer.recreateIndices()
         expect(deleteSpy).toHaveBeenCalledTimes(1)
@@ -185,23 +224,73 @@ describe('Indexer', () => {
       })
     })
   })
+
+  describe('setupIndices()', () => {
+    const logSpy = jest.spyOn(indexer.logger, 'error')
+
+    describe('when successful', () => {
+      const clientMock = new ClientSuccessFake()
+      const createSpy = jest.spyOn(clientMock.indices, 'create')
+      const mappingSpy = jest.spyOn(clientMock.indices, 'putMapping')
+
+      beforeEach(() => {
+        indexer.client = clientMock
+      })
+
+      it('does not log an error', async () => {
+        await indexer.setupIndices()
+        expect(createSpy).toHaveBeenCalledTimes(indexer.indices.length)
+        expect(mappingSpy).toHaveBeenCalledTimes(indexer.indices.length)
+        expect(logSpy).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('when erroring', () => {
+      const clientMock = new ClientErrorFake()
+      const createSpy = jest.spyOn(clientMock.indices, 'create')
+
+      beforeEach(() => {
+        indexer.client = clientMock
+      })
+
+      beforeAll(() => {
+        // Eat console output
+        restoreConsole = mockConsole(['error', 'debug'])
+      })
+
+      afterAll(() => {
+        restoreConsole()
+      })
+
+      it('logs an error', async () => {
+        await indexer.setupIndices()
+        expect(createSpy).toHaveBeenCalledTimes(1)
+        expect(logSpy).toHaveBeenCalledWith('error setting up indices: could not create indices')
+      })
+    })
+  })
+
   describe('identifierFrom()', () => {
     beforeAll(() => {
       // Eat console output
       restoreConsole = mockConsole(['error', 'debug'])
     })
+
     afterAll(() => {
       restoreConsole()
     })
+
     it('removes URI scheme/host/port', () => {
       expect(indexer.identifierFrom('https://localhost:8080/one-two-three')).toBe('one-two-three')
     })
+
     describe('with a pathless URI', () => {
       it('returns pre-configured value', () => {
-        expect(indexer.identifierFrom('https://localhost:8080/')).toBe(Config.rootNodeIdentifier)
+        expect(indexer.identifierFrom('https://localhost:8080/')).toBe(config.get('rootNodeIdentifier'))
       })
     })
   })
+
   describe('indexNameFrom()', () => {
     it('returns the resource index name by default', () => {
       expect(indexer.indexNameFrom([])).toBe('sinopia_resources')

@@ -1,10 +1,10 @@
+import config from 'config'
 import elasticsearch from 'elasticsearch'
 import superagent from 'superagent'
-import Config from '../src/Config'
 
 describe('integration tests', () => {
   const client = new elasticsearch.Client({
-    host: Config.indexUrl,
+    host: config.get('indexUrl'),
     log: 'warning'
   })
   const resourceSlug = 'stanford12345'
@@ -23,26 +23,26 @@ describe('integration tests', () => {
   }
 
   beforeAll(async () => {
-    await createIndexIfAbsent(Config.resourceIndexName)
-    await createIndexIfAbsent(Config.nonRdfIndexName)
+    await createIndexIfAbsent(config.get('resourceIndexName'))
+    await createIndexIfAbsent(config.get('nonRdfIndexName'))
   })
   afterAll(async () => {
     // Remove test resources from indices
     await client.delete({
-      index: Config.resourceIndexName,
-      type: Config.indexType,
+      index: config.get('resourceIndexName'),
+      type: config.get('indexType'),
       id: resourceSlug
     })
     await client.delete({
-      index: Config.nonRdfIndexName,
-      type: Config.indexType,
+      index: config.get('nonRdfIndexName'),
+      type: config.get('indexType'),
       id: nonRdfSlug
     })
   })
   test('resource index is clear of test document', () => {
     return client.search({
-      index: Config.resourceIndexName,
-      type: Config.indexType,
+      index: config.get('resourceIndexName'),
+      type: config.get('indexType'),
       body: {
         query: {
           term: {
@@ -58,8 +58,8 @@ describe('integration tests', () => {
   })
   test('resource template index is clear of test document', () => {
     return client.search({
-      index: Config.nonRdfIndexName,
-      type: Config.indexType,
+      index: config.get('nonRdfIndexName'),
+      type: config.get('indexType'),
       body: {
         query: {
           term: {
@@ -74,7 +74,7 @@ describe('integration tests', () => {
     })
   })
   test('new Trellis resource is indexed', async () => {
-    superagent.post(Config.platformUrl)
+    superagent.post(config.get('platformUrl'))
       .type('application/ld+json')
       .send(`{ "@context": { "dcterms": "http://purl.org/dc/terms/" }, "@id": "", "dcterms:title": "${resourceTitle}" }`)
       .set('Link', '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"')
@@ -85,8 +85,8 @@ describe('integration tests', () => {
     await sleep(4900)
 
     return client.search({
-      index: Config.resourceIndexName,
-      type: Config.indexType,
+      index: config.get('resourceIndexName'),
+      type: config.get('indexType'),
       body: {
         query: {
           term: {
@@ -99,12 +99,12 @@ describe('integration tests', () => {
     }).then(response => {
       expect(response.hits.total).toEqual(1)
       const firstHit = response.hits.hits[0]
-      expect(firstHit._source['@id']).toEqual(`${Config.platformUrl}/${resourceSlug}`)
-      expect(firstHit._source.title).toEqual(resourceTitle)
+      expect(firstHit._source.document['@id']).toEqual(`${config.get('platformUrl')}/${resourceSlug}`)
+      expect(firstHit._source.document.title).toEqual(resourceTitle)
     })
   })
   test('new Trellis resource template is indexed', async () => {
-    superagent.post(Config.platformUrl)
+    superagent.post(config.get('platformUrl'))
       .type('application/json')
       .send(nonRdfBody)
       .set('Link', '<http://www.w3.org/ns/ldp#NonRDFSource>; rel="type"')
@@ -115,8 +115,8 @@ describe('integration tests', () => {
     await sleep(4900)
 
     return client.search({
-      index: Config.nonRdfIndexName,
-      type: Config.indexType,
+      index: config.get('nonRdfIndexName'),
+      type: config.get('indexType'),
       body: {
         query: {
           term: {
@@ -129,20 +129,20 @@ describe('integration tests', () => {
     }).then(response => {
       expect(response.hits.total).toEqual(1)
       const firstHit = response.hits.hits[0]
-      expect(firstHit._source.foo).toEqual('bar')
-      expect(firstHit._source.baz).toEqual('quux')
+      expect(firstHit._source.document.foo).toEqual('bar')
+      expect(firstHit._source.document.baz).toEqual('quux')
     })
   })
   test('deleted Trellis resource is removed from resource index', async () => {
-    superagent.delete(`${Config.platformUrl}/${resourceSlug}`)
+    superagent.delete(`${config.get('platformUrl')}/${resourceSlug}`)
       .then(res => res.body)
 
     // Give the pipeline a chance to run
     await sleep(4500)
 
     return client.search({
-      index: Config.resourceIndexName,
-      type: Config.indexType,
+      index: config.get('resourceIndexName'),
+      type: config.get('indexType'),
       body: {
         query: {
           term: {
@@ -157,15 +157,15 @@ describe('integration tests', () => {
     })
   })
   test('deleted Trellis resource template is removed from resource template index', async () => {
-    superagent.delete(`${Config.platformUrl}/${nonRdfSlug}`)
+    superagent.delete(`${config.get('platformUrl')}/${nonRdfSlug}`)
       .then(res => res.body)
 
     // Give the pipeline a chance to run
     await sleep(4500)
 
     return client.search({
-      index: Config.nonRdfIndexName,
-      type: Config.indexType,
+      index: config.get('nonRdfIndexName'),
+      type: config.get('indexType'),
       body: {
         query: {
           term: {

@@ -1,5 +1,8 @@
+.dockerignore
+.env
+.node-version
+.nvmrc
+Dockerfile
+coverage
 node_modules
 npm-debug.log
-Dockerfile
-.dockerignore
-.node-version

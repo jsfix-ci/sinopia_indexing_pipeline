@@ -1,4 +1,4 @@
-import Config from './Config'
+import config from 'config'
 
 export default class Logger {
   /**
@@ -6,7 +6,7 @@ export default class Logger {
    * @param {string} message - The message to be logged
    */
   debug(message) {
-    if (Config.debug)
+    if (config.get('debug'))
       console.debug(message)
   }
 

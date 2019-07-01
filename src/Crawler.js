@@ -1,4 +1,4 @@
-import Config from './Config'
+import config from 'config'
 import Logger from './Logger'
 import Request from './Request'
 
@@ -21,8 +21,8 @@ export default class Crawler {
    * @param {resourceCallback} onResource - Callback that handles the resource
    */
   async crawl(onResource) {
-    this.logger.debug(`connecting to Trellis at ${Config.platformUrl}`)
-    await this.request(Config.platformUrl, onResource)
+    this.logger.debug(`connecting to Trellis at ${config.get('platformUrl')}`)
+    await this.request(config.get('platformUrl'), onResource)
   }
 
   /**

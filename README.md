@@ -10,14 +10,16 @@ This is the repository for the Sinopia Indexing Pipeline. The pipeline is a Node
 * Dereferences the URI, asking for a JSON-LD representation.
 * Indexes the JSON-LD, or a derivative thereof, in ElasticSearch.
 
-The pipeline also includes a `bin/reindex` task that will wipe ElasticSearch and reindex Trellis by crawling the tree of resources contained within Trellis.
+The pipeline also includes a `bin/reindex` command that will wipe all ElasticSearch indices and reindex Trellis by crawling the tree of resources contained within Trellis.
+
+**Note** that if the Trellis platform is running in a container, the reindexer will also need to run in a container, else it will fail to resolve Trellis's internal hostname. In that event, run `docker-compose run reindexer` instead.
 
 ## Testing
 
 Using `docker-compose`, you can spin up containers for Trellis, ActiveMQ, ElasticSearch, Postgres, and the pipeline::
 
 ```shell
-$ docker-compose up -d pipeline
+$ docker-compose up pipeline # add -d to run in background
 ```
 
 To shut it down and clean up, run:
@@ -42,8 +44,10 @@ $ npm test
 To run the integration tests, they must be invoked independent of the unit tests:
 
 ```shell
-$ npm run integration
+$ INSIDE_CONTAINER=true npm run integration
 ```
+
+**NOTE**: The `pipeline` `docker-compose` service must be running for the integration tests to pass.
 
 ### Continuous Integration
 
@@ -53,15 +57,23 @@ We are using CircleCI to run continuous integration. CircleCI invokes the integr
 $ docker-compose run integration
 ```
 
-### Create a Trellis resource (test)
+### Create a Trellis resource
 
 To create a Trellis container and test integration between the pipeline components, you may do so using a curl incantation like follows:
 
 ```shell
-curl -i -X POST -H 'Content-Type: application/ld+json' -H 'Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' -H "Slug: repository" -d '{ "@context": { "dcterms": "http://purl.org/dc/terms/" }, "@id": "", "dcterms:title": "Repository container" }' http://localhost:8080
+$ curl -i -X POST -H 'Content-Type: application/ld+json' -H 'Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' -H "Slug: repository" -d '{ "@context": { "dcterms": "http://purl.org/dc/terms/" }, "@id": "", "dcterms:title": "Repository container" }' http://localhost:8080
 ```
 
 See [Sinopia Server notes](https://github.com/LD4P/sinopia_server/wiki/Draft-Notes-for-Sinopia-Server-API-Spec) for more Trellis `curl` incantations.
+
+### Inspect indexing behavior
+
+While testing the pipeline, it may be useful for you to run test searches against ElasticSearch to inspect the resulting index entries that the pipeline created. To do this, a `npm run search` script has been included:
+
+```shell
+$ npm run search A Tale of Two Cities
+```
 
 ## Development
 
@@ -74,7 +86,7 @@ $ docker-compose up -d platform search searchui
 And then spin up the pipeline using:
 
 ```shell
-npm run dev-start
+$ npm run dev-start
 ```
 
 Note that if you want to view the ElasticSearch index, you can browse to http://localhost:1358/.

@@ -10,6 +10,16 @@ export default class ClientSuccessFake {
         return new Promise((resolve, _reject) => {
           return resolve()
         })
+      },
+      exists: () => {
+        return new Promise((resolve, _reject) => {
+          return resolve(false)
+        })
+      },
+      putMapping: () => {
+        return new Promise((resolve, _reject) => {
+          return resolve()
+        })
       }
     }
   }

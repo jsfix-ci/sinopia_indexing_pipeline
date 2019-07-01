@@ -14,6 +14,8 @@ export default class Pipeline {
    * Runs the pipeline
    */
   run() {
+    this.indexer.setupIndices()
+
     this.listener.listen((body, _headers) => {
       this.logger.debug(`received message: ${body}`)
       body = JSON.parse(body)
