@@ -66,8 +66,12 @@ describe('Indexer', () => {
         id: '12345',
         body: {
           document: json,
+          author: [],
+          subject: [],
+          subtitle: ['A Tragic Tale about a Prince of Denmark'],
+          'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
           title: ['Hamlet'],
-          subtitle: ['A Tragic Tale about a Prince of Denmark']
+          'title-suggest': ['hamlet'],
         }
       })
     })
@@ -227,6 +231,21 @@ describe('Indexer', () => {
 
   describe('setupIndices()', () => {
     const logSpy = jest.spyOn(indexer.logger, 'error')
+
+    describe('when indexes already exist', () => {
+      const clientMock = new ClientSuccessFake(true)
+      const createSpy = jest.spyOn(clientMock.indices, 'create')
+
+      beforeEach(() => {
+        indexer.client = clientMock
+      })
+
+      it('skips creating them', async () => {
+        await indexer.setupIndices()
+        expect(createSpy).not.toHaveBeenCalled()
+        expect(logSpy).not.toHaveBeenCalled()
+      })
+    })
 
     describe('when successful', () => {
       const clientMock = new ClientSuccessFake()

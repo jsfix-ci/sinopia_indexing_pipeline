@@ -93,9 +93,15 @@ export default class Indexer {
   buildMappingsFromConfig() {
     const mappingObject = { properties: {} }
 
-    for (const fieldName in config.get('indexFieldMappings')) {
+    for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
       mappingObject.properties[fieldName] = {
-        type: config.get('indexFieldMappings')[fieldName].type
+        type: fieldProperties.type
+      }
+
+      if (fieldProperties.autosuggest) {
+        mappingObject.properties[`${fieldName}-suggest`] = {
+          type: 'completion'
+        }
       }
     }
 
@@ -110,9 +116,7 @@ export default class Indexer {
   async recreateIndices() {
     try {
       await this.client.indices.delete({ index: '_all' })
-      for (const index of this.indices) {
-        await this.client.indices.create({ index: index })
-      }
+      await this.setupIndices()
     } catch(error) {
       this.logger.error(`error recreating indices: ${error}`)
     }
@@ -140,14 +144,18 @@ export default class Indexer {
     // Begin by tossing the entire object into the index, giving us more leeway to search on full documents later
     const indexObject = { document: json }
 
-    for (const fieldName in config.get('indexFieldMappings')) {
+    for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
       indexObject[fieldName] = JSONPath({
         json: json,
-        path: config.get('indexFieldMappings')[fieldName].path,
+        path: fieldProperties.path,
         flatten: true
       })
         .filter(obj => obj['@value']) // Filter out fields without values, e.g., from the @context object
         .map(obj => obj['@value']) // Extract the value and ignore the @language for now (this is currently coupled to how titles are modeled)
+
+      if (fieldProperties.autosuggest && indexObject[fieldName].length > 0) {
+        indexObject[`${fieldName}-suggest`] = indexObject[fieldName].join(' ').split(' ').map(token => token.toLowerCase())
+      }
     }
 
     return indexObject

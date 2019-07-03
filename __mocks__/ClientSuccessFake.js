@@ -1,5 +1,5 @@
 export default class ClientSuccessFake {
-  constructor() {
+  constructor(exists=false) {
     this.indices = {
       delete: () => {
         return new Promise((resolve, _reject) => {
@@ -13,7 +13,7 @@ export default class ClientSuccessFake {
       },
       exists: () => {
         return new Promise((resolve, _reject) => {
-          return resolve(false)
+          return resolve(exists)
         })
       },
       putMapping: () => {
