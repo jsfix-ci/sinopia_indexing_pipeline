@@ -17,7 +17,18 @@ module.exports = {
   indexUrl: process.env.INDEX_URL || 'http://localhost:9200',
   indexFieldMappings: process.env.INDEX_FIELD_MAPPINGS
     ? JSON.parse(process.env.INDEX_FIELD_MAPPINGS)
-    : { title: { type: 'text', path: '$..mainTitle' }, subtitle: { type: 'text', path: '$..subtitle' } },
+    : {
+      title: {
+        type: 'text',
+        path: '$..mainTitle',
+        autosuggest: true
+      },
+      subtitle: {
+        type: 'text',
+        path: '$..subtitle',
+        autosuggest: true
+      }
+    },
   nonRdfTypeURI: process.env.NON_RDF_TYPE_URI || 'http://www.w3.org/ns/ldp#NonRDFSource',
   nonRdfMimeType: process.env.NON_RDF_MIME_TYPE || 'application/json',
   debug:  process.env.DEBUG !== undefined ? process.env.DEBUG : true
