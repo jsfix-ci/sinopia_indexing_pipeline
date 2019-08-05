@@ -94,7 +94,6 @@ describe('integration tests', () => {
     }).then(response => {
       expect(response.hits.total).toEqual(1)
       const firstHit = response.hits.hits[0]
-      expect(firstHit._source.document['@id']).toEqual(`${config.get('platformUrl')}/${resourceSlug}`)
       expect(firstHit._source.title[0]).toEqual(resourceTitle)
     })
   })

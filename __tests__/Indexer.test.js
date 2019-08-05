@@ -54,25 +54,55 @@ describe('Indexer', () => {
       restoreConsole = mockConsole(['error', 'debug'])
     })
 
+    beforeEach(() => {
+      indexer.storeDocumentIndices = []
+    })
+
     afterAll(() => {
       restoreConsole()
     })
 
-    it('calls index() on the client', () => {
-      indexer.index(json, objectUri, objectTypes)
-      expect(indexSpy).toHaveBeenCalledWith({
-        index: config.get('resourceIndexName'),
-        type: config.get('indexType'),
-        id: '12345',
-        body: {
-          document: json,
-          author: [],
-          subject: [],
-          subtitle: ['A Tragic Tale about a Prince of Denmark'],
-          'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
-          title: ['Hamlet'],
-          'title-suggest': ['hamlet'],
-        }
+    describe('when not storing the document', () => {
+      it('calls index() on the client without the document', () => {
+        indexer.index(json, objectUri, objectTypes)
+        expect(indexSpy).toHaveBeenCalledWith({
+          index: config.get('resourceIndexName'),
+          type: config.get('indexType'),
+          id: '12345',
+          body: {
+            author: [],
+            label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
+            subject: [],
+            subtitle: ['A Tragic Tale about a Prince of Denmark'],
+            'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
+            title: ['Hamlet'],
+            'title-suggest': ['hamlet'],
+            uri: 'http://foo.bar/12345',
+          }
+        })
+      })
+    })
+
+    describe('when storing the document', () => {
+      it('calls index() on the client with the document', () => {
+        indexer.storeDocumentIndices.push(config.get('resourceIndexName'))
+        indexer.index(json, objectUri, objectTypes)
+        expect(indexSpy).toHaveBeenCalledWith({
+          index: config.get('resourceIndexName'),
+          type: config.get('indexType'),
+          id: '12345',
+          body: {
+            author: [],
+            document: json,
+            label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
+            subject: [],
+            subtitle: ['A Tragic Tale about a Prince of Denmark'],
+            'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
+            title: ['Hamlet'],
+            'title-suggest': ['hamlet'],
+            uri: 'http://foo.bar/12345',
+          }
+        })
       })
     })
 

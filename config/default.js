@@ -15,6 +15,7 @@ module.exports = {
   nonRdfIndexName: process.env.NON_RDF_INDEX_NAME || 'sinopia_templates',
   indexType: process.env.INDEX_TYPE || 'sinopia',
   indexUrl: process.env.INDEX_URL || 'http://localhost:9200',
+  // Note that InputLookupSinopia expects uri and label fields.
   indexFieldMappings: process.env.INDEX_FIELD_MAPPINGS
     ? JSON.parse(process.env.INDEX_FIELD_MAPPINGS)
     : {
@@ -27,6 +28,19 @@ module.exports = {
         type: 'text',
         path: '$..subtitle',
         autosuggest: true
+      },
+      uri: {
+        type: 'keyword',
+        id: true,
+        store: true,
+        index: false
+      },
+      label: {
+        type: 'keyword',
+        fields: ['title', 'subtitle'],
+        joinby: ': ',
+        store: true,
+        index: false
       }
     },
   nonRdfTypeURI: process.env.NON_RDF_TYPE_URI || 'http://www.w3.org/ns/ldp#NonRDFSource',
