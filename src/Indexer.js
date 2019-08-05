@@ -14,6 +14,7 @@ export default class Indexer {
     this.knownIndexResults = ['created', 'updated']
     this.knownDeleteResults = ['deleted']
     this.indices = [config.get('resourceIndexName'), config.get('nonRdfIndexName')]
+    this.storeDocumentIndices = [config.get('nonRdfIndexName')]
   }
 
   /**
@@ -24,11 +25,13 @@ export default class Indexer {
    * @returns {?boolean} true if successful; null if not
    */
   index(json, uri, types) {
+    const index = this.indexNameFrom(types)
+    const store_document = this.storeDocumentIndices.indexOf(index) > -1
     return this.client.index({
-      index: this.indexNameFrom(types),
+      index: index,
       type: config.get('indexType'),
       id: this.identifierFrom(uri),
-      body: this.buildIndexEntryFrom(json)
+      body: this.buildIndexEntryFrom(uri, json, store_document)
     }).then(indexResponse => {
       if (!this.knownIndexResults.includes(indexResponse.result))
         throw { message: JSON.stringify(indexResponse) }
@@ -95,7 +98,9 @@ export default class Indexer {
 
     for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
       mappingObject.properties[fieldName] = {
-        type: fieldProperties.type
+        type: fieldProperties.type,
+        store: fieldProperties.store == true,
+        index: fieldProperties.index == false ? false : true
       }
 
       if (fieldProperties.autosuggest) {
@@ -137,28 +142,68 @@ export default class Indexer {
 
   /**
    * Builds up an index entry out of a JSON body, given index field mappings from config
+   * @param {string} uri - Trellis URI of the document
    * @param {Object} json - A Trellis resource (of some kind: RDFSource, BasicContainer, NonRDFSource, etc.)
+   * @param {boolean} store_document - Whether to add the document to the indexed object
    * @returns {Object} an object containing configured field values if any found
    */
-  buildIndexEntryFrom(json) {
-    // Begin by tossing the entire object into the index, giving us more leeway to search on full documents later
-    const indexObject = { document: json }
+  buildIndexEntryFrom(uri, json, store_document) {
+    const indexObject = {}
 
+    if(store_document) {
+      indexObject.document = json
+    }
+
+    this.buildIndexEntryFields(indexObject, uri, json)
+    this.buildAggregateFields(indexObject)
+    this.buildAutosuggest(indexObject)
+
+    return indexObject
+  }
+
+  buildIndexEntryFields(indexObject, uri, json) {
     for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
-      indexObject[fieldName] = JSONPath({
-        json: json,
-        path: fieldProperties.path,
-        flatten: true
-      })
-        .filter(obj => obj['@value']) // Filter out fields without values, e.g., from the @context object
-        .map(obj => obj['@value']) // Extract the value and ignore the @language for now (this is currently coupled to how titles are modeled)
+      if(fieldProperties.id) {
+        indexObject[fieldName] = uri
+      } else if (!fieldProperties.fields) {
+        indexObject[fieldName] = JSONPath({
+          json: json,
+          path: fieldProperties.path,
+          flatten: true
+        })
+          .filter(obj => obj['@value']) // Filter out fields without values, e.g., from the @context object
+          .map(obj => obj['@value']) // Extract the value and ignore the @language for now (this is currently coupled to how titles are modeled)
+      }
+    }
+  }
 
+  buildAggregateFields(indexObject) {
+    for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
+      if (fieldProperties.fields) {
+        const values = this.getFieldValues(fieldProperties.fields, indexObject)
+        if(values.length > 0) {
+          indexObject[fieldName] = values.join(fieldProperties.joinby || ' ')
+        }
+      }
+    }
+  }
+
+  getFieldValues(fields, indexObject) {
+    const values = []
+    fields.forEach((fieldName) => {
+      if (indexObject[fieldName].length > 0) {
+        values.push(indexObject[fieldName])
+      }
+    })
+    return values
+  }
+
+  buildAutosuggest(indexObject) {
+    for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
       if (fieldProperties.autosuggest && indexObject[fieldName].length > 0) {
         indexObject[`${fieldName}-suggest`] = indexObject[fieldName].join(' ').split(' ').map(token => token.toLowerCase())
       }
     }
-
-    return indexObject
   }
 
   /**
