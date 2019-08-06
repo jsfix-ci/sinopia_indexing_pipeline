@@ -145,6 +145,18 @@ describe('Indexer', () => {
         expect(logSpy).toHaveBeenCalledWith('error indexing: what a useful error message this is')
       })
     })
+
+    describe('when not indexing the document', () => {
+      // Note that no title or subtitle
+      const jsonNoIndex = {
+        '@id': objectUri,
+        foo: 'bar',
+      }
+      it('does not call index()', () => {
+        indexer.index(jsonNoIndex, objectUri, objectTypes)
+        expect(indexSpy).not.toHaveBeenCalled()
+      })
+    })
   })
 
   describe('delete()', () => {
