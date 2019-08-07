@@ -27,11 +27,16 @@ export default class Indexer {
   index(json, uri, types) {
     const index = this.indexNameFrom(types)
     const store_document = this.storeDocumentIndices.indexOf(index) > -1
+    const body = this.buildIndexEntryFrom(uri, json, store_document)
+    if(!body.uri || !body.label) {
+      this.logger.debug(`skipping indexing ${uri} since no uri and/or label`)
+      return true
+    }
     return this.client.index({
       index: index,
       type: config.get('indexType'),
       id: this.identifierFrom(uri),
-      body: this.buildIndexEntryFrom(uri, json, store_document)
+      body: body
     }).then(indexResponse => {
       if (!this.knownIndexResults.includes(indexResponse.result))
         throw { message: JSON.stringify(indexResponse) }
