@@ -8,7 +8,11 @@ export default class Listener {
       host: config.get('brokerHost'),
       port: config.get('brokerPort'),
       user: config.get('brokerUsername'),
-      pass: config.get('brokerPassword')
+      pass: config.get('brokerPassword'),
+      reconnectOpts: {
+        retries: config.get('brokerRetries'),
+        delay: config.get('brokerRetryDelay')
+      }
     }
 
     if (config.get('brokerTlsEnabled'))
