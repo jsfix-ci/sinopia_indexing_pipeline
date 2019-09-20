@@ -9,6 +9,8 @@ module.exports = {
   brokerUsername: process.env.BROKER_USERNAME || '',
   brokerPassword: process.env.BROKER_PASSWORD || '',
   brokerTlsEnabled: process.env.BROKER_TLS_ENABLED === 'true',
+  brokerRetries: process.env.BROKER_RETRIES || 10,
+  brokerRetryDelay: process.env.BROKER_RETRY_DELAY || 500,
   queueName: process.env.QUEUE_NAME || '/queue/trellis',
   defaultMimeType: process.env.DEFAULT_MIME_TYPE || 'application/ld+json',
   resourceIndexName: process.env.RESOURCE_INDEX_NAME || 'sinopia_resources',
