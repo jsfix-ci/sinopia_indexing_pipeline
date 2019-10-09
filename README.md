@@ -44,7 +44,7 @@ $ npm test
 To run the integration tests, they must be invoked independent of the unit tests:
 
 ```shell
-$ INSIDE_CONTAINER=true npm run integration
+$ npm run integration
 ```
 
 **NOTE**: The `pipeline` `docker-compose` service must be running for the integration tests to pass.
