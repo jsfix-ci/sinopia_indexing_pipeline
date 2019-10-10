@@ -69,6 +69,20 @@ export default class Indexer {
     })
   }
 
+  // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-asciifolding-tokenfilter.html
+  indexSettings() {
+    return {
+      analysis : {
+        analyzer : {
+          default : {
+            tokenizer : 'standard',
+            filter : ['asciifolding']
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Create indices, if needed, and add field mappings
    * @returns {null}
@@ -79,7 +93,10 @@ export default class Indexer {
         const indexExists = await this.client.indices.exists({ index: index })
 
         if (!indexExists) {
-          await this.client.indices.create({ index: index })
+          // analysis and filter settings must be provided at index creation time; alternatively, the index can be closed, configured, and reopened.
+          // otherwise, an error is thrown along the lines of "error setting up indices: [illegal_argument_exception] Can't update non dynamic settings"
+          // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/6.x/api-reference.html#_indices_create
+          await this.client.indices.create({ index: index, body: { settings: this.indexSettings() } })
         }
 
         await this.client.indices.putMapping({
