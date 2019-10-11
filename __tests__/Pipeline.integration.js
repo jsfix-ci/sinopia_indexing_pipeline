@@ -32,6 +32,8 @@ describe('integration tests', () => {
     })
   })
 
+  jest.setTimeout(7500)
+
   test('resource index is clear of test document', () => {
     return client.search({
       index: config.get('resourceIndexName'),
