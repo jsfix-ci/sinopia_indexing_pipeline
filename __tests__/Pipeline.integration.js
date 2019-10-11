@@ -9,7 +9,7 @@ describe('integration tests', () => {
     log: 'warning'
   })
   const resourceSlug = 'stanford12345'
-  const resourceTitle = 'A cool title'
+  const resourceTitle = 'A cøol tītlé'
   const nonRdfSlug = 'resourceTemplate:foo123:Something:Excellent'
   const nonRdfBody = { foo: 'bar', baz: 'quux' }
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -31,6 +31,8 @@ describe('integration tests', () => {
       id: nonRdfSlug
     })
   })
+
+  jest.setTimeout(7500)
 
   test('resource index is clear of test document', () => {
     return client.search({
@@ -79,7 +81,7 @@ describe('integration tests', () => {
     // Give the pipeline a chance to run
     await sleep(4900)
 
-    return client.search({
+    await client.search({
       index: config.get('resourceIndexName'),
       type: config.get('indexType'),
       body: {
@@ -96,6 +98,33 @@ describe('integration tests', () => {
       const firstHit = response.hits.hits[0]
       expect(firstHit._source.title[0]).toEqual(resourceTitle)
     })
+
+    const searchExpectations = [
+      { phrase: resourceTitle, totalHits: 1},
+      { phrase: 'cøol tītlé', totalHits: 1},
+      { phrase: 'cool title', totalHits: 1},
+      { phrase: 'cöôl title', totalHits: 1},
+      { phrase: 'COOL title', totalHits: 1},
+      { phrase: 'cool', totalHits: 1},
+      { phrase: 'title', totalHits: 1},
+      { phrase: 'coooool tiiiitle', totalHits: 0},
+    ]
+    for (const {phrase, totalHits} of searchExpectations) {
+      await client.search({
+        index: config.get('resourceIndexName'),
+        type: config.get('indexType'),
+        body: {
+          query: {
+            match: {
+              title: phrase
+            }
+          }
+        }
+      }).then(response => {
+        // including phrase makes it easier to find the one that fails the test, should the test fail
+        expect([phrase, response.hits.total]).toEqual([phrase, totalHits])
+      })
+    }
   })
 
   test('new Trellis resource template is not indexed', async () => {
