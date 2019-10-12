@@ -8,7 +8,8 @@ export default class Indexer {
   constructor() {
     this.client = new elasticsearch.Client({
       host: config.get('indexUrl'),
-      log: 'warning'
+      log: 'warning',
+      apiVersion: '6.8'
     })
     this.logger = new Logger()
     this.knownIndexResults = ['created', 'updated']
