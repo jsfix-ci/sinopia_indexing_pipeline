@@ -35,7 +35,7 @@ module.exports = {
         type: 'keyword',
         id: true,
         store: true,
-        index: false
+        index: true
       },
       label: {
         type: 'keyword',
