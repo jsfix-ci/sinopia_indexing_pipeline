@@ -105,6 +105,7 @@ describe('integration tests', () => {
       { phrase: 'cool title', totalHits: 1},
       { phrase: 'cöôl title', totalHits: 1},
       { phrase: 'COOL title', totalHits: 1},
+      { phrase: 'COOL TITLE', totalHits: 1},
       { phrase: 'cool', totalHits: 1},
       { phrase: 'title', totalHits: 1},
       { phrase: 'coooool tiiiitle', totalHits: 0},
