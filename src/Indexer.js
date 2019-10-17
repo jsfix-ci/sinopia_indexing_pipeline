@@ -77,7 +77,7 @@ export default class Indexer {
         analyzer : {
           default : {
             tokenizer : 'standard',
-            filter : ['asciifolding']
+            filter : ['lowercase', 'asciifolding']
           }
         }
       }
