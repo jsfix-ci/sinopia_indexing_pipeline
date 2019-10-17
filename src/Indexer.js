@@ -181,6 +181,7 @@ export default class Indexer {
     this.buildAggregateFields(indexObject)
     this.buildAutosuggest(indexObject)
     this.buildActivityStreamFields(indexObject, json)
+    this.buildRDFTypes(indexObject, json)
     return indexObject
   }
 
@@ -244,6 +245,13 @@ export default class Indexer {
       .filter((item) => item['@type'].some((type) => asTypes.map((asType) => `as:${asType}`).includes(type)))
       .map((item) => item.atTime).sort().reverse()
     return dates.length > 0 ? dates[0] : undefined
+  }
+
+  buildRDFTypes(indexObject, json) {
+    indexObject['type'] = json['@graph']
+      .filter((item) => item['@type'])
+      .filter((item) => !item['@type'].includes('prov:Activity'))
+      .map(item => item['@type'])
   }
 
   /**

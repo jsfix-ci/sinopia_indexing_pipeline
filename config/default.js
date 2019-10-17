@@ -31,6 +31,10 @@ module.exports = {
         path: '$..subtitle',
         autosuggest: true
       },
+      type:  {
+        type: 'keyword',
+        store: true
+      },
       uri: {
         type: 'keyword',
         id: true,
