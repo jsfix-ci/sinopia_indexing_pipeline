@@ -43,7 +43,19 @@ module.exports = {
         joinby: ': ',
         store: true,
         index: false
-      }
+      },
+      created: {
+        type: 'date',
+        asTypes: ['Create'],
+        store: true,
+        index: true
+      },
+      modified: {
+        type: 'date',
+        asTypes: ['Create', 'Update'],
+        store: true,
+        index: true
+      },
     },
   nonRdfTypeURI: process.env.NON_RDF_TYPE_URI || 'http://www.w3.org/ns/ldp#NonRDFSource',
   nonRdfMimeType: process.env.NON_RDF_MIME_TYPE || 'application/json',

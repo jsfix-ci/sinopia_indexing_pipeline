@@ -180,7 +180,7 @@ export default class Indexer {
     this.buildIndexEntryFields(indexObject, uri, json)
     this.buildAggregateFields(indexObject)
     this.buildAutosuggest(indexObject)
-
+    this.buildActivityStreamFields(indexObject, json)
     return indexObject
   }
 
@@ -188,7 +188,7 @@ export default class Indexer {
     for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
       if(fieldProperties.id) {
         indexObject[fieldName] = uri
-      } else if (!fieldProperties.fields) {
+      } else if (fieldProperties.path) {
         indexObject[fieldName] = JSONPath({
           json: json,
           path: fieldProperties.path,
@@ -227,6 +227,23 @@ export default class Indexer {
         indexObject[`${fieldName}-suggest`] = indexObject[fieldName].join(' ').split(' ').map(token => token.toLowerCase())
       }
     }
+  }
+
+  buildActivityStreamFields(indexObject, json) {
+    for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
+      if(fieldProperties.asTypes) {
+        const asDate = this.getActivityStreamDate(fieldProperties.asTypes, json['@graph'])
+        if (asDate) indexObject[fieldName] = asDate
+      }
+    }
+  }
+
+  getActivityStreamDate(asTypes, json) {
+    const dates = json
+      .filter((item) => item.atTime && item['@type'])
+      .filter((item) => item['@type'].some((type) => asTypes.map((asType) => `as:${asType}`).includes(type)))
+      .map((item) => item.atTime).sort().reverse()
+    return dates.length > 0 ? dates[0] : undefined
   }
 
   /**

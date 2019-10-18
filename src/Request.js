@@ -10,7 +10,10 @@ export default class Request {
   constructor(uri, typeURIs) {
     this.logger = new Logger()
     this.uri = uri
-    this.agent = typeURIs ? superagent.get(this.uri).accept(this.mimeTypeFrom(typeURIs)) : superagent.get(this.uri)
+    this.agent = superagent.get(this.uri).set('prefer', 'return=representation; include="http://www.trellisldp.org/ns/trellis#PreferAudit"')
+    if (typeURIs) {
+      this.agent = this.agent.accept(this.mimeTypeFrom(typeURIs))
+    }
   }
 
   /**

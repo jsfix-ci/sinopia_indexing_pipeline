@@ -42,10 +42,27 @@ describe('Indexer', () => {
     const clientMock = new ClientSuccessFake()
     const indexSpy = jest.spyOn(clientMock, 'index')
     const json = {
-      '@id': objectUri,
-      foo: 'bar',
-      mainTitle: { '@value': 'Hamlet' },
-      subtitle: { '@value': 'A Tragic Tale about a Prince of Denmark' }
+      '@graph': [{
+        '@id': objectUri,
+        '@type': 'http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle',
+        'foo': 'bar',
+        'mainTitle': { '@value': 'Hamlet' },
+        'subtitle': { '@value': 'A Tragic Tale about a Prince of Denmark' },
+        'hasResourceTemplate': 'ld4p:RT:bf2:Title:AbbrTitle'
+      }, {
+        '@id': '_:b0',
+        '@type': ['as:Update', 'prov:Activity'],
+        'atTime': '2019-10-18T16:11:33.772Z',
+        'wasAssociatedWith': 'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/449f003b-19d1-48b5-aecb-b4f47fbb7dc8'
+      }, {
+        '@id': '_:b1',
+        '@type': ['as:Create', 'prov:Activity'],
+        'atTime': '2019-10-18T16:08:43.300Z',
+        'wasAssociatedWith': 'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/449f003b-19d1-48b5-aecb-b4f47fbb7dc8'
+      }, {
+        '@id': objectUri,
+        'wasGeneratedBy': ['_:b1', '_:b0']
+      }],
     }
 
     beforeAll(() => {
@@ -78,6 +95,8 @@ describe('Indexer', () => {
             title: ['Hamlet'],
             'title-suggest': ['hamlet'],
             uri: 'http://foo.bar/12345',
+            created: '2019-10-18T16:08:43.300Z',
+            modified: '2019-10-18T16:11:33.772Z'
           }
         })
       })
@@ -93,8 +112,10 @@ describe('Indexer', () => {
           id: '12345',
           body: {
             author: [],
+            created: '2019-10-18T16:08:43.300Z',
             document: json,
             label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
+            modified: '2019-10-18T16:11:33.772Z',
             subject: [],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
             'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
@@ -149,8 +170,11 @@ describe('Indexer', () => {
     describe('when not indexing the document', () => {
       // Note that no title or subtitle
       const jsonNoIndex = {
-        '@id': objectUri,
-        foo: 'bar',
+        '@graph': [{
+          '@id': objectUri,
+          '@type': 'http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle',
+          'foo': 'bar',
+        }]
       }
       it('does not call index()', () => {
         indexer.index(jsonNoIndex, objectUri, objectTypes)
