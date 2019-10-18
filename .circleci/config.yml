@@ -10,23 +10,30 @@ defaults: &defaults
 
 version: 2
 jobs:
+  dependencies:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependencies-prod-{{ checksum "package.json" }}
+      - run: npm install --only=production
+      - save_cache:
+          key: dependencies-prod-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - restore_cache:
+          key: dependencies-ci-{{ checksum "package.json" }}
+      - run: npm install # including CI/Test dependencies
+      - save_cache:
+          key: dependencies-ci-{{ checksum "package.json" }}
+          paths:
+            - node_modules
   build:
     <<: *defaults
     steps:
       - checkout
-      - setup_remote_docker
       - restore_cache:
-          keys:
-            - dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - dependencies-
-      - run:
-          name: Install dependencies
-          command: npm install
-      - save_cache:
-          paths:
-            - node_modules
-          key: dependencies-{{ checksum "package.json" }}
+          key: dependencies-ci-{{ checksum "package.json" }}
       - run:
           name: Setup Code Climate test-reporter
           command: |
@@ -38,25 +45,41 @@ jobs:
             ./cc-test-reporter before-build
             npm run ci
             ./cc-test-reporter after-build --exit-code $?
+      - setup_remote_docker
       - run:
           name: Run integration tests
           command: docker-compose run integration
-  register_image:
+  register_latest_image:
     <<: *defaults
     steps:
       - checkout
       - setup_remote_docker
-      - restore_cache:
-          key: dependencies-{{ checksum "package.json" }}
+      - restore_cache: # gives us back matching node_modules
+          key: dependencies-prod-{{ checksum "package.json" }}
       - attach_workspace:
           at: .
       - run:
-          name: Build & push docker image
+          name: Build & Register Images
           # NOTE: the env variables holding docker credentials are stored in the CircleCI dashboard
           command: |
             docker build -t ld4p/sinopia_indexing_pipeline:latest .
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
             docker push ld4p/sinopia_indexing_pipeline:latest
+  register_tag_image:
+    <<: *defaults
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache: # gives us back matching node_modules
+          key: dependencies-prod-{{ checksum "package.json" }}
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build & Register Images
+          command: |
+            docker build -t ld4p/sinopia_indexing_pipeline:$CIRCLE_TAG .
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push ld4p/sinopia_indexing_pipeline:$CIRCLE_TAG
   update_ecs:
     working_directory: ~/sinopia_indexing_pipeline
     docker: # NOT the default
@@ -80,19 +103,48 @@ jobs:
             cluster_arn=$(aws ecs list-clusters --region us-west-2 | jq --raw-output --exit-status '.clusterArns[] | select(contains(":cluster/sinopia-dev"))')
             # echo -n "task_arn=$task_arn\ncluster_arn=$cluster_arn\n"
             aws ecs update-service --service sinopia-indexing --region us-west-2 --cluster $cluster_arn --task-definition $task_arn --force-new-deployment
-
 workflows:
   version: 2
   build:
     jobs:
-      - build
-      - register_image:
+      - dependencies:
+          filters:
+            branches:
+              only:
+                - /.*/
+            tags:
+              only:
+                - /v.*/
+      - build:
+          requires:
+            - dependencies
+          filters:
+            branches:
+              only:
+                - /.*/
+            tags:
+              only:
+                - /v.*/
+      - register_latest_image:
           requires:
             - build
           filters:
             branches:
               only:
                 - master
+            tags:
+              ignore:
+                - /v.*/
+      - register_tag_image:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /v.*/
       - update_ecs:
           requires:
-            - register_image
+            - register_latest_image
