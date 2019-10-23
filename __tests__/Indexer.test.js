@@ -48,6 +48,7 @@ describe('Indexer', () => {
         'foo': 'bar',
         'mainTitle': { '@value': 'Hamlet' },
         'subtitle': { '@value': 'A Tragic Tale about a Prince of Denmark' },
+        'someText': { '@value': 'There is nothing either good or bad, but thinking makes it so.' },
         'hasResourceTemplate': 'ld4p:RT:bf2:Title:AbbrTitle'
       }, {
         '@id': '_:b0',
@@ -89,6 +90,11 @@ describe('Indexer', () => {
           body: {
             author: [],
             label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
+            text: [
+              'Hamlet',
+              'A Tragic Tale about a Prince of Denmark',
+              'There is nothing either good or bad, but thinking makes it so.'
+            ],
             subject: [],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
             'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
@@ -119,6 +125,11 @@ describe('Indexer', () => {
             subject: [],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
             'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
+            text: [
+              'Hamlet',
+              'A Tragic Tale about a Prince of Denmark',
+              'There is nothing either good or bad, but thinking makes it so.'
+            ],
             title: ['Hamlet'],
             'title-suggest': ['hamlet'],
             uri: 'http://foo.bar/12345',
