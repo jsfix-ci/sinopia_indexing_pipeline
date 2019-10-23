@@ -56,6 +56,12 @@ module.exports = {
         store: true,
         index: true
       },
+      text: {
+        type: 'text',
+        path: '$..*',
+        store: false,
+        index: true
+      }
     },
   nonRdfTypeURI: process.env.NON_RDF_TYPE_URI || 'http://www.w3.org/ns/ldp#NonRDFSource',
   nonRdfMimeType: process.env.NON_RDF_MIME_TYPE || 'application/json',
