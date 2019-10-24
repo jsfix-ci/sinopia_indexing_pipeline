@@ -100,6 +100,7 @@ describe('Indexer', () => {
             'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
             title: ['Hamlet'],
             'title-suggest': ['hamlet'],
+            type: ['http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle'],
             uri: 'http://foo.bar/12345',
             created: '2019-10-18T16:08:43.300Z',
             modified: '2019-10-18T16:11:33.772Z'
@@ -107,6 +108,7 @@ describe('Indexer', () => {
         })
       })
     })
+
 
     describe('when storing the document', () => {
       it('calls index() on the client with the document', () => {
@@ -132,6 +134,7 @@ describe('Indexer', () => {
             ],
             title: ['Hamlet'],
             'title-suggest': ['hamlet'],
+            type: ['http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle'],
             uri: 'http://foo.bar/12345',
           }
         })
@@ -175,6 +178,48 @@ describe('Indexer', () => {
         expect.assertions(1)
         await indexer.index(json, objectUri, objectTypes)
         expect(logSpy).toHaveBeenCalledWith('error indexing: what a useful error message this is')
+      })
+    })
+
+    describe('when document has multiple types', () => {
+      it('type has multiple URIs', () => {
+        const clientMock2 = new ClientSuccessFake()
+        indexer.client = clientMock2
+        const indexSpy2 = jest.spyOn(clientMock2, 'index')
+        const multipleTypesJSON = {...json}
+        multipleTypesJSON['@graph'][0]['@type'] = [
+          multipleTypesJSON['@graph'][0]['@type'],
+          'http://id.loc.gov/ontologies/bibframe/WorkTitle'
+        ]
+
+        indexer.index(multipleTypesJSON, objectUri, objectTypes)
+        expect(indexSpy2).toHaveBeenCalledWith({
+          index: config.get('resourceIndexName'),
+          type: config.get('indexType'),
+          id: '12345',
+          body: {
+            author: [],
+            label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
+            text: [
+              'Hamlet',
+              'A Tragic Tale about a Prince of Denmark',
+              'There is nothing either good or bad, but thinking makes it so.'
+            ],
+            subject: [],
+            subtitle: ['A Tragic Tale about a Prince of Denmark'],
+            'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
+            title: ['Hamlet'],
+            'title-suggest': ['hamlet'],
+            type:[
+              [ 'http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle',
+                'http://id.loc.gov/ontologies/bibframe/WorkTitle'
+              ],
+            ],
+            uri: 'http://foo.bar/12345',
+            created: '2019-10-18T16:08:43.300Z',
+            modified: '2019-10-18T16:11:33.772Z'
+          }
+        })
       })
     })
 
