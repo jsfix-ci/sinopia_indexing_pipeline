@@ -146,8 +146,8 @@ describe('Crawler', () => {
 
       it('executes the callback', async () => {
         await crawler.request(uri, callback)
-
-        expect(callback).toHaveBeenCalledWith({ contains: [] }, uri, ['type1', 'type2'])
+        const successRespBody = (await ((new RequestTypedSuccessFake()).response())).body
+        expect(callback).toHaveBeenCalledWith(successRespBody, uri, ['type1', 'type2'])
       })
       // TODO: Come up with a strategy for better testing this recursive function
       it.todo('makes one request per contained resource ("child")')

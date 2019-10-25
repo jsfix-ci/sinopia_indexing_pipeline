@@ -23,7 +23,7 @@ export default class Indexer {
    * @param {Object} json - Object to be indexed
    * @param {string} uri - URI of object to be indexed
    * @param {string} types - one or more LDP type URIs
-   * @returns {?boolean} true if successful; null if not
+   * @returns {Promise} resolves to true if successful; null if not
    */
   index(json, uri, types) {
     const index = this.indexNameFrom(types)
@@ -53,7 +53,7 @@ export default class Indexer {
    * @param {string} uri - URI of object to be indexed
    * @param {string} types - one or more LDP type URIs
    * @returns {?boolean} true if successful; null if not
-   * @param {string} types - one or more LDP type URIs
+   * @param {Promise} resolves to types - one or more LDP type URIs
    */
   delete(uri, types) {
     return this.client.delete({
@@ -139,7 +139,7 @@ export default class Indexer {
 
   /**
    * Remove and recreate all known indices
-   * @returns {null}
+   * @returns {Promise} resolves to null upon completion (errors, if any, are logged)
    */
   async recreateIndices() {
     try {

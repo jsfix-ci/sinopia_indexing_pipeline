@@ -41,24 +41,38 @@ export default class Crawler {
       // index.
       const response = await this.typeSpecificRequest(uri, types).response()
 
-      // Execute the callback, allowing the caller to index the content
-      // properly
-      onResource(response.body, uri, types)
+      const containedResourcesArray = this.containedResourcesArray(response.body)
+      this.logger.debug(`${uri} contains ${containedResourcesArray}`)
 
-      // `body.contains` will be a string, not an array, if there is but one
-      // child.
-      this.toArray(response.body.contains).forEach(async child => {
+      const containedResourcePromises = containedResourcesArray.map(async child => {
         if (child)
-          // Recurse down into child resources
+          // Recurse down into each child resource
           await this.request(child, onResource)
       })
+
+      // await promises for the callback on this resource as well as the requests for any child resources
+      await Promise.all([onResource(response.body, uri, types)].concat(containedResourcePromises))
     } catch(error) {
       this.logger.error(`during crawl, error making mime type-specific request to ${uri}: ${error}`)
     }
   }
 
+  // `body.contains` will be a string, not an array, if there is but one
+  // child.
   toArray(object) {
     return Array.isArray(object) ? object : Array.of(object)
+  }
+
+  containedResourcesArray(responseBody) {
+    if (responseBody && responseBody.contains)
+      return this.toArray(responseBody.contains)
+
+    if (responseBody && responseBody['@graph']) {
+      const containsElt = responseBody['@graph'].find((elt) => 'contains' in elt)
+      return containsElt ? this.toArray(containsElt.contains) : []
+    }
+
+    return []
   }
 
   async ldpTypesFrom(uri) {
