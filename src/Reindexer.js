@@ -17,7 +17,8 @@ export default class Reindexer {
     await this.crawler.crawl((resource, uri, types) => {
       this.logger.debug(`found resource for ${uri} with types: ${types}`)
       try {
-        this.indexer.index(resource, uri, types)
+        // pass along the .index() returned Promise in case caller wants to wait on it
+        return this.indexer.index(resource, uri, types)
       } catch(error) {
         this.logger.error(`error reindexing ${uri}: ${error}`)
       }

@@ -41,17 +41,17 @@ export default class Crawler {
       // index.
       const response = await this.typeSpecificRequest(uri, types).response()
 
-      // Execute the callback, allowing the caller to index the content
-      // properly
-      onResource(response.body, uri, types)
-
       const containedResourcesArray = this.containedResourcesArray(response.body)
       this.logger.debug(`${uri} contains ${containedResourcesArray}`)
-      await Promise.all(containedResourcesArray.map(async child => {
+
+      const containedResourcePromises = containedResourcesArray.map(async child => {
         if (child)
-          // Recurse down into child resources
+          // Recurse down into each child resource
           await this.request(child, onResource)
-      }))
+      })
+
+      // await promises for the callback on this resource as well as the requests for any child resources
+      await Promise.all([onResource(response.body, uri, types)].concat(containedResourcePromises))
     } catch(error) {
       this.logger.error(`during crawl, error making mime type-specific request to ${uri}: ${error}`)
     }

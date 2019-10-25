@@ -196,13 +196,14 @@ describe('integration tests', () => {
       expect(response.hits.total).toEqual(0)
     })
 
-    // TODO: seems like some calls made from within Reindexer().reindex() don't necessarily await
-    // as maybe they could to allow reindex to settle iff all its spawned requests have settled, hence
-    // sleep below.  should await logic in there get tightened up?
+    // The .reindex() code should work such that the Promise it returns will
+    // settle iff the Promises it spawns have all settled (e.g. the trellis crawl,
+    // and the indexing requests spawned by the callback the crawl uses).
+    // If things change and cause that assumption not to hold any longer, change the
+    // test to do as is done above for the regular pipeline, and follow this with e.g.
+    // `await sleep(4900)` (the pipeline listener doesn't await any of the indexing requests
+    // it spawns, because it does nothing itself with those results).
     await new Reindexer().reindex()
-
-    // Give the reindex requests a chance to finish
-    await sleep(4900)
 
     await Promise.all([...Array(resourceCount).keys()].map(i => {
       const identifier = `repository/${reindexingResourceSlug}_${i}`
