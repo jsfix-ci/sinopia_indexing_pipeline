@@ -24,7 +24,7 @@ module.exports = {
         fields: {
           title: {
             type: 'text',
-            path: '$..mainTitle',
+            path: '$..[mainTitle,P10223,P20315,P40085,P30156]', //BIBFRAME and RDA
             autosuggest: true
           },
           subtitle: {
