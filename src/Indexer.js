@@ -14,8 +14,6 @@ export default class Indexer {
     this.logger = new Logger()
     this.knownIndexResults = ['created', 'updated']
     this.knownDeleteResults = ['deleted']
-    this.indices = [config.get('resourceIndexName'), config.get('nonRdfIndexName')]
-    this.storeDocumentIndices = [config.get('nonRdfIndexName')]
   }
 
   /**
@@ -25,14 +23,19 @@ export default class Indexer {
    * @param {string} types - one or more LDP type URIs
    * @returns {Promise} resolves to true if successful; null if not
    */
-  index(json, uri, types) {
-    const index = this.indexNameFrom(types)
-    const store_document = this.storeDocumentIndices.indexOf(index) > -1
-    const body = this.buildIndexEntryFrom(uri, json, store_document)
-    if(!body.uri || !body.label) {
-      this.logger.debug(`skipping indexing ${uri} since no uri and/or label`)
+  async index(json, uri, types) {
+    const [index, store_document, fields] = this.indexFrom(types)
+    this.logger.debug(`${uri} (${types}) has index ${index}`)
+    if (index === undefined) {
+      this.logger.debug(`skipping indexing ${uri} (${types})`)
       return true
     }
+    const body = this.buildIndexEntryFrom(uri, json, store_document, fields)
+
+    if (! body.uri || ! body.label) {
+      throw `${uri} requires a uri and label: ${body}`
+    }
+
     return this.client.index({
       index: index,
       type: config.get('indexType'),
@@ -55,9 +58,14 @@ export default class Indexer {
    * @returns {?boolean} true if successful; null if not
    * @param {Promise} resolves to types - one or more LDP type URIs
    */
-  delete(uri, types) {
+  async delete(uri, types) {
+    const [index] = this.indexFrom(types)
+    if (index === undefined) {
+      this.logger.debug(`skipping deleting ${uri} (${types})`)
+      return true
+    }
     return this.client.delete({
-      index: this.indexNameFrom(types),
+      index,
       type: config.get('indexType'),
       id: this.identifierFrom(uri)
     }).then(indexResponse => {
@@ -89,8 +97,9 @@ export default class Indexer {
    * @returns {null}
    */
   async setupIndices() {
+    const indexMappings = config.get('indexMappings')
     try {
-      for (const index of this.indices) {
+      for (const index of Object.keys(indexMappings)) {
         const indexExists = await this.client.indices.exists({ index: index })
 
         if (!indexExists) {
@@ -103,7 +112,7 @@ export default class Indexer {
         await this.client.indices.putMapping({
           index: index,
           type: config.get('indexType'),
-          body: this.buildMappingsFromConfig()
+          body: this.buildMappingsFromConfig(indexMappings[index].fields)
         })
       }
     } catch(error) {
@@ -114,12 +123,13 @@ export default class Indexer {
 
   /**
    * Build field mappings from configuration
+   * @param {Object} fields - Field configuration
    * @returns {Object}
    */
-  buildMappingsFromConfig() {
+  buildMappingsFromConfig(fields) {
     const mappingObject = { properties: {} }
 
-    for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
+    for (const [fieldName, fieldProperties] of Object.entries(fields)) {
       mappingObject.properties[fieldName] = {
         type: fieldProperties.type,
         store: fieldProperties.store == true,
@@ -168,45 +178,50 @@ export default class Indexer {
    * @param {string} uri - Trellis URI of the document
    * @param {Object} json - A Trellis resource (of some kind: RDFSource, BasicContainer, NonRDFSource, etc.)
    * @param {boolean} store_document - Whether to add the document to the indexed object
+   * @param {Object} fields - Configuration for fields to be indexed
    * @returns {Object} an object containing configured field values if any found
    */
-  buildIndexEntryFrom(uri, json, store_document) {
+  buildIndexEntryFrom(uri, json, store_document, fields) {
     const indexObject = {}
 
     if(store_document) {
       indexObject.document = json
     }
 
-    this.buildIndexEntryFields(indexObject, uri, json)
-    this.buildAggregateFields(indexObject)
-    this.buildAutosuggest(indexObject)
-    this.buildActivityStreamFields(indexObject, json)
+    this.buildIndexEntryFields(indexObject, uri, json, fields)
+    this.buildAggregateFields(indexObject, fields)
+    this.buildAutosuggest(indexObject, fields)
+    this.buildActivityStreamFields(indexObject, json, fields)
     this.buildRDFTypes(indexObject, json)
     return indexObject
   }
 
-  buildIndexEntryFields(indexObject, uri, json) {
-    for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
+  buildIndexEntryFields(indexObject, uri, json, fields) {
+    for (const [fieldName, fieldProperties] of Object.entries(fields)) {
       if(fieldProperties.id) {
         indexObject[fieldName] = uri
       } else if (fieldProperties.path) {
-        indexObject[fieldName] = JSONPath({
+        const fieldValues = JSONPath({
           json: json,
           path: fieldProperties.path,
           flatten: true
         })
           .filter(obj => obj['@value']) // Filter out fields without values, e.g., from the @context object
           .map(obj => obj['@value']) // Extract the value and ignore the @language for now (this is currently coupled to how titles are modeled)
+        if (fieldValues.length > 0) indexObject[fieldName] = fieldValues
       }
     }
   }
 
-  buildAggregateFields(indexObject) {
-    for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
+  buildAggregateFields(indexObject, fields) {
+    for (const [fieldName, fieldProperties] of Object.entries(fields)) {
       if (fieldProperties.fields) {
-        const values = this.getFieldValues(fieldProperties.fields, indexObject)
-        if(values.length > 0) {
-          indexObject[fieldName] = values.join(fieldProperties.joinby || ' ')
+        const fieldValues = fieldProperties.fields.map((fields) => {
+          return this.getFieldValues(fields, indexObject)
+          // if (values.length > 0) return values.join(fieldProperties.joinby || ' ')
+        }).filter((values) => values.length > 0)
+        if(fieldValues.length > 0) {
+          indexObject[fieldName] = fieldValues[0].join(fieldProperties.joinby || ' ')
         }
       }
     }
@@ -215,23 +230,23 @@ export default class Indexer {
   getFieldValues(fields, indexObject) {
     const values = []
     fields.forEach((fieldName) => {
-      if (indexObject[fieldName].length > 0) {
+      if (indexObject[fieldName] && indexObject[fieldName].length > 0) {
         values.push(indexObject[fieldName])
       }
     })
     return values
   }
 
-  buildAutosuggest(indexObject) {
-    for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
-      if (fieldProperties.autosuggest && indexObject[fieldName].length > 0) {
+  buildAutosuggest(indexObject, fields) {
+    for (const [fieldName, fieldProperties] of Object.entries(fields)) {
+      if (fieldProperties.autosuggest && indexObject[fieldName] && indexObject[fieldName].length > 0) {
         indexObject[`${fieldName}-suggest`] = indexObject[fieldName].join(' ').split(' ').map(token => token.toLowerCase())
       }
     }
   }
 
-  buildActivityStreamFields(indexObject, json) {
-    for (const [fieldName, fieldProperties] of Object.entries(config.get('indexFieldMappings'))) {
+  buildActivityStreamFields(indexObject, json, fields) {
+    for (const [fieldName, fieldProperties] of Object.entries(fields)) {
       if(fieldProperties.asTypes) {
         const asDate = this.getActivityStreamDate(fieldProperties.asTypes, json['@graph'])
         if (asDate) indexObject[fieldName] = asDate
@@ -255,13 +270,16 @@ export default class Indexer {
   }
 
   /**
-   * Returns appropriate index name given a list of LDP types
+   * Returns index information given a list of LDP types.
    * @param {Array} types - LDP type URIs of object
-   * @returns {string} name of index
+   * @returns {[string, store_document, fields]} name of index | undefined if should not index, whether to store document, field configuration
    */
-  indexNameFrom(types) {
-    if (types.includes(config.get('nonRdfTypeURI')))
-      return config.get('nonRdfIndexName')
-    return config.get('resourceIndexName')
+  indexFrom(types) {
+    if (types.includes('http://www.w3.org/ns/ldp#BasicContainer')) return [undefined, undefined, undefined]
+    const indexMappings = config.get('indexMappings')
+    const index = types.includes(config.get('nonRdfTypeURI')) ? 'sinopia_templates' : 'sinopia_resources'
+    // For now, not indexing resource templates
+    if (index === 'sinopia_templates') return [undefined, undefined, undefined]
+    return [index, indexMappings[index].store_document, indexMappings[index].fields]
   }
 }

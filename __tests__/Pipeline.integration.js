@@ -24,12 +24,12 @@ describe('integration tests', () => {
   afterAll(async () => {
     // Remove test resources from indices
     await client.delete({
-      index: config.get('resourceIndexName'),
+      index: 'sinopia_resources',
       type: config.get('indexType'),
       id: resourceSlug
     })
     await client.delete({
-      index: config.get('nonRdfIndexName'),
+      index: 'sinopia_templates',
       type: config.get('indexType'),
       id: nonRdfSlug
     })
@@ -39,7 +39,7 @@ describe('integration tests', () => {
 
   test('resource index is clear of test document', () => {
     return client.search({
-      index: config.get('resourceIndexName'),
+      index: 'sinopia_resources',
       type: config.get('indexType'),
       body: {
         query: {
@@ -57,7 +57,7 @@ describe('integration tests', () => {
 
   test('resource template index is clear of test document', () => {
     return client.search({
-      index: config.get('nonRdfIndexName'),
+      index: 'sinopia_templates',
       type: config.get('indexType'),
       body: {
         query: {
@@ -77,15 +77,14 @@ describe('integration tests', () => {
     superagent.post(config.get('platformUrl'))
       .type('application/ld+json')
       .send(`{ "@context": { "mainTitle": { "@id": "http://id.loc.gov/ontologies/bibframe/mainTitle" } }, "@id": "", "mainTitle": [{ "@value": "${resourceTitle}", "@language": "en" }] }`)
-      .set('Link', '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"')
+      .set('Link', '<http://www.w3.org/ns/ldp#RDFSource>; rel="type"')
       .set('Slug', resourceSlug)
       .then(res => res.body)
-
     // Give the pipeline a chance to run
     await sleep(4900)
 
     await client.search({
-      index: config.get('resourceIndexName'),
+      index: 'sinopia_resources',
       type: config.get('indexType'),
       body: {
         query: {
@@ -115,7 +114,7 @@ describe('integration tests', () => {
     ]
     for (const {phrase, totalHits} of searchExpectations) {
       await client.search({
-        index: config.get('resourceIndexName'),
+        index: 'sinopia_resources',
         type: config.get('indexType'),
         body: {
           query: {
@@ -146,10 +145,10 @@ describe('integration tests', () => {
 
     const resourceCount = 5
     await Promise.all([...Array(resourceCount).keys()].map(i =>
-      superagent.post(`${config.get('platformUrl')}/repository`)
+      superagent.post(config.get('platformUrl'))
         .type('application/ld+json')
         .send(`{ "@context": { "mainTitle": { "@id": "http://id.loc.gov/ontologies/bibframe/mainTitle" } }, "@id": "", "mainTitle": [{ "@value": "${reindexingResourceTitle} ${i}", "@language": "en" }] }`)
-        .set('Link', '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"')
+        .set('Link', '<http://www.w3.org/ns/ldp#RDFSource>; rel="type"')
         .set('Slug', `${reindexingResourceSlug}_${i}`)
         .then(res => res.body)
         .catch(err => { console.dir(err); throw err })
@@ -161,7 +160,7 @@ describe('integration tests', () => {
     await Promise.all([...Array(resourceCount).keys()].map(i => {
       const identifier = `repository/${reindexingResourceSlug}_${i}`
       return client.search({
-        index: config.get('resourceIndexName'),
+        index: 'sinopia_resources',
         type: config.get('indexType'),
         body: {
           query: {
@@ -183,7 +182,7 @@ describe('integration tests', () => {
 
     // sanity check simulated catastrophe
     await client.search({
-      index: config.get('resourceIndexName'),
+      index: 'sinopia_resources',
       type: config.get('indexType'),
       body: {
         query: {
@@ -208,7 +207,7 @@ describe('integration tests', () => {
     await Promise.all([...Array(resourceCount).keys()].map(i => {
       const identifier = `repository/${reindexingResourceSlug}_${i}`
       return client.search({
-        index: config.get('resourceIndexName'),
+        index: 'sinopia_resources',
         type: config.get('indexType'),
         body: {
           query: {
@@ -238,7 +237,7 @@ describe('integration tests', () => {
     await sleep(4900)
 
     return client.search({
-      index: config.get('nonRdfIndexName'),
+      index: 'sinopia_templates',
       type: config.get('indexType'),
       body: {
         query: {
@@ -262,7 +261,7 @@ describe('integration tests', () => {
     await sleep(4500)
 
     return client.search({
-      index: config.get('resourceIndexName'),
+      index: 'sinopia_resources',
       type: config.get('indexType'),
       body: {
         query: {
@@ -286,7 +285,7 @@ describe('integration tests', () => {
     await sleep(4500)
 
     return client.search({
-      index: config.get('nonRdfIndexName'),
+      index: 'sinopia_templates',
       type: config.get('indexType'),
       body: {
         query: {

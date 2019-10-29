@@ -65,7 +65,7 @@ services:
     depends_on:
       - pipeline
   database:
-    image: postgres:latest
+    image: postgres:11
     environment:
       POSTGRES_USER: sinopia
       POSTGRES_DB: sinopia

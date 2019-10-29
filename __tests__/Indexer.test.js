@@ -12,9 +12,12 @@ import ClientSuccessFake from '../__mocks__/ClientSuccessFake'
 let restoreConsole
 
 describe('Indexer', () => {
-  const indexer = new Indexer()
+  const resourceObjectTypes = ['http://www.w3.org/ns/ldp#RDFSource', 'http://www.w3.org/ns/ldp#Resource']
+  const containerObjectTypes = ['http://www.w3.org/ns/ldp#BasicContainer','http://www.w3.org/ns/ldp#Container','http://www.w3.org/ns/ldp#RDFSource','http://www.w3.org/ns/ldp#Resource']
+  const resourceTemplateObjectTypes = ['http://www.w3.org/ns/ldp#BasicContainer','http://www.w3.org/ns/ldp#Container','http://www.w3.org/ns/ldp#RDFSource','http://www.w3.org/ns/ldp#Resource']
   const objectUri = 'http://foo.bar/12345'
-  const objectTypes = ['http://www.w3.org/ns/ldp#BasicContainer']
+
+  const indexer = new Indexer()
 
   describe('constructor()', () => {
     it('creates a client with the configured endpoint URL', () => {
@@ -32,16 +35,10 @@ describe('Indexer', () => {
     it('sets known delete results', () => {
       expect(indexer.knownDeleteResults).toEqual(['deleted'])
     })
-
-    it('sets known indices', () => {
-      expect(indexer.indices).toEqual(['sinopia_resources', 'sinopia_templates'])
-    })
   })
 
   describe('index()', () => {
-    const clientMock = new ClientSuccessFake()
-    const indexSpy = jest.spyOn(clientMock, 'index')
-    const json = {
+    const resourceJson = {
       '@graph': [{
         '@id': objectUri,
         '@type': 'http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle',
@@ -66,36 +63,35 @@ describe('Indexer', () => {
       }],
     }
 
+    const clientMock = new ClientSuccessFake()
+    const indexSpy = jest.spyOn(clientMock, 'index')
+
     beforeAll(() => {
       indexer.client = clientMock
       // Eat console output
       restoreConsole = mockConsole(['error', 'debug'])
     })
 
-    beforeEach(() => {
-      indexer.storeDocumentIndices = []
-    })
-
     afterAll(() => {
       restoreConsole()
     })
 
-    describe('when not storing the document', () => {
-      it('calls index() on the client without the document', () => {
-        indexer.index(json, objectUri, objectTypes)
+    describe('when indexing a resource', () => {
+      it('calls index() on the client and returns true', () => {
+        indexer.index(resourceJson, objectUri, resourceObjectTypes).then(result => {
+          expect(result).toEqual(true)
+        })
         expect(indexSpy).toHaveBeenCalledWith({
-          index: config.get('resourceIndexName'),
+          index: 'sinopia_resources',
           type: config.get('indexType'),
           id: '12345',
           body: {
-            author: [],
             label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
             text: [
               'Hamlet',
               'A Tragic Tale about a Prince of Denmark',
               'There is nothing either good or bad, but thinking makes it so.'
             ],
-            subject: [],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
             'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
             title: ['Hamlet'],
@@ -109,44 +105,117 @@ describe('Indexer', () => {
       })
     })
 
-
-    describe('when storing the document', () => {
-      it('calls index() on the client with the document', () => {
-        indexer.storeDocumentIndices.push(config.get('resourceIndexName'))
-        indexer.index(json, objectUri, objectTypes)
+    describe('when indexing a resource without a title', () => {
+      const json = {
+        '@graph': [{
+          '@id': objectUri,
+          '@type': 'http://id.loc.gov/ontologies/bibframe/Note',
+          'someText': { '@value': 'There is nothing either good or bad, but thinking makes it so.' },
+          'hasResourceTemplate': 'ld4p:RT:bf2:Note'
+        }, {
+          '@id': '_:b0',
+          '@type': ['as:Update', 'prov:Activity'],
+          'atTime': '2019-10-18T16:11:33.772Z',
+          'wasAssociatedWith': 'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/449f003b-19d1-48b5-aecb-b4f47fbb7dc8'
+        }, {
+          '@id': '_:b1',
+          '@type': ['as:Create', 'prov:Activity'],
+          'atTime': '2019-10-18T16:08:43.300Z',
+          'wasAssociatedWith': 'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/449f003b-19d1-48b5-aecb-b4f47fbb7dc8'
+        }, {
+          '@id': objectUri,
+          'wasGeneratedBy': ['_:b1', '_:b0']
+        }],
+      }
+      it('uses the URI as the label', () => {
+        indexer.index(json, objectUri, resourceObjectTypes).then(result => {
+          expect(result).toEqual(true)
+        })
         expect(indexSpy).toHaveBeenCalledWith({
-          index: config.get('resourceIndexName'),
+          index: 'sinopia_resources',
           type: config.get('indexType'),
           id: '12345',
           body: {
-            author: [],
-            created: '2019-10-18T16:08:43.300Z',
-            document: json,
-            label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
-            modified: '2019-10-18T16:11:33.772Z',
-            subject: [],
-            subtitle: ['A Tragic Tale about a Prince of Denmark'],
-            'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
+            label: 'http://foo.bar/12345',
             text: [
-              'Hamlet',
-              'A Tragic Tale about a Prince of Denmark',
               'There is nothing either good or bad, but thinking makes it so.'
             ],
-            title: ['Hamlet'],
-            'title-suggest': ['hamlet'],
-            type: ['http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle'],
+            type: ['http://id.loc.gov/ontologies/bibframe/Note'],
             uri: 'http://foo.bar/12345',
+            created: '2019-10-18T16:08:43.300Z',
+            modified: '2019-10-18T16:11:33.772Z'
           }
         })
       })
+
     })
 
-    describe('when indexing succeeds', () => {
-      it('returns true', () => {
-        return indexer.index(json, objectUri, objectTypes)
-          .then(result => {
-            expect(result).toEqual(true)
-          })
+    describe('when indexing a resource template', () => {
+      const resourceTemplateJson = {
+        'propertyTemplates': [{
+          'mandatory': 'false',
+          'repeatable': 'true',
+          'type': 'literal',
+          'propertyURI': 'http://id.loc.gov/ontologies/bibframe/title',
+          'propertyLabel': 'Title referenced'
+        }],
+        'id': 'ld4p:RT:bf2:ReferenceInstance',
+        'resourceLabel': 'Instance Referenced',
+        'resourceURI': 'http://id.loc.gov/ontologies/bibframe/Instance',
+        'remark': 'used in rare materials profile',
+        'author': 'LD4P',
+        'date': '2019-08-19',
+        'schema': 'https://ld4p.github.io/sinopia/schemas/0.2.0/resource-template.json'
+      }
+
+      it('does not index and returns true', () => {
+        indexer.index(resourceTemplateJson, objectUri, resourceTemplateObjectTypes).then(result => {
+          expect(result).toEqual(true)
+        })
+        expect(indexSpy).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('when indexing a container', () => {
+      const containerJson = {
+        '@graph': [{
+          '@id': '_:b0',
+          '@type': ['prov:Activity', 'as:Create'],
+          'atTime': '2019-10-28T18:30:09.939Z',
+          'wasAssociatedWith': 'http://www.trellisldp.org/ns/trellis#AnonymousAgent'
+        }, {
+          '@id': 'http://platform:8080/repository/cornell',
+          'label': 'Sinopia Cornell University Group Container',
+          'contains': 'http://platform:8080/repository/cornell/52671e22-4612-4dca-8b00-87b2cbc3fa6e',
+          'wasGeneratedBy': '_:b0'
+        }],
+        '@context': {
+          'wasAssociatedWith': {
+            '@id': 'http://www.w3.org/ns/prov#wasAssociatedWith',
+            '@type': '@id'
+          },
+          'atTime': {
+            '@id': 'http://www.w3.org/ns/prov#atTime',
+            '@type': 'http://www.w3.org/2001/XMLSchema#dateTime'
+          },
+          'contains': {
+            '@id': 'http://www.w3.org/ns/ldp#contains',
+            '@type': '@id'
+          },
+          'wasGeneratedBy': {
+            '@id': 'http://www.w3.org/ns/prov#wasGeneratedBy',
+            '@type': '@id'
+          },
+          'label': {
+            '@id': 'http://www.w3.org/2000/01/rdf-schema#label'
+          },
+        }
+      }
+      it('does not index and returns true', () => {
+        indexer.index(containerJson, objectUri, containerObjectTypes).then(result => {
+          expect(result).toEqual(true)
+        })
+        expect(indexSpy).not.toHaveBeenCalled()
       })
     })
 
@@ -159,7 +228,7 @@ describe('Indexer', () => {
       })
 
       it('throws and logs an error', () => {
-        return indexer.index(json, objectUri, objectTypes)
+        return indexer.index(resourceJson, objectUri, resourceObjectTypes)
           .then(() => {
             expect(logSpy).toHaveBeenCalledWith('error indexing: {}')
           })
@@ -176,36 +245,34 @@ describe('Indexer', () => {
 
       it('logs the error', async () => {
         expect.assertions(1)
-        await indexer.index(json, objectUri, objectTypes)
+        await indexer.index(resourceJson, objectUri, resourceObjectTypes)
         expect(logSpy).toHaveBeenCalledWith('error indexing: what a useful error message this is')
       })
     })
 
-    describe('when document has multiple types', () => {
+    describe('when resource has multiple types', () => {
       it('type has multiple URIs', () => {
         const clientMock2 = new ClientSuccessFake()
         indexer.client = clientMock2
         const indexSpy2 = jest.spyOn(clientMock2, 'index')
-        const multipleTypesJSON = {...json}
+        const multipleTypesJSON = {...resourceJson}
         multipleTypesJSON['@graph'][0]['@type'] = [
           multipleTypesJSON['@graph'][0]['@type'],
           'http://id.loc.gov/ontologies/bibframe/WorkTitle'
         ]
 
-        indexer.index(multipleTypesJSON, objectUri, objectTypes)
+        indexer.index(multipleTypesJSON, objectUri, resourceObjectTypes)
         expect(indexSpy2).toHaveBeenCalledWith({
-          index: config.get('resourceIndexName'),
+          index: 'sinopia_resources',
           type: config.get('indexType'),
           id: '12345',
           body: {
-            author: [],
             label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
             text: [
               'Hamlet',
               'A Tragic Tale about a Prince of Denmark',
               'There is nothing either good or bad, but thinking makes it so.'
             ],
-            subject: [],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
             'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
             title: ['Hamlet'],
@@ -223,20 +290,20 @@ describe('Indexer', () => {
       })
     })
 
-    describe('when not indexing the document', () => {
-      // Note that no title or subtitle
-      const jsonNoIndex = {
-        '@graph': [{
-          '@id': objectUri,
-          '@type': 'http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle',
-          'foo': 'bar',
-        }]
-      }
-      it('does not call index()', () => {
-        indexer.index(jsonNoIndex, objectUri, objectTypes)
-        expect(indexSpy).not.toHaveBeenCalled()
-      })
-    })
+    // describe('when not indexing the document', () => {
+    //   // Note that no title or subtitle
+    //   const jsonNoIndex = {
+    //     '@graph': [{
+    //       '@id': objectUri,
+    //       '@type': 'http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle',
+    //       'foo': 'bar',
+    //     }]
+    //   }
+    //   it('does not call index()', () => {
+    //     indexer.index(jsonNoIndex, objectUri, resourceObjectTypes)
+    //     expect(indexSpy).not.toHaveBeenCalled()
+    //   })
+    // })
   })
 
   describe('delete()', () => {
@@ -256,21 +323,25 @@ describe('Indexer', () => {
       restoreConsole()
     })
 
-    it('calls delete() on the client', () => {
-      indexer.delete(objectUri, objectTypes)
+    it('calls delete() on the client and returns true', () => {
+      indexer.delete(objectUri, resourceObjectTypes)
+        .then(result => {
+          expect(result).toEqual(true)
+        })
       expect(deleteSpy).toHaveBeenCalledWith({
-        index: config.get('resourceIndexName'),
+        index: 'sinopia_resources',
         type: config.get('indexType'),
         id: '12345'
       })
     })
 
-    describe('when delete succeeds', () => {
-      it('returns true', () => {
-        return indexer.delete(objectUri, objectTypes)
+    describe('when deleting a non-resource (e.g., container)', () => {
+      it('does not call delete() on the client and returns true', () => {
+        indexer.delete(objectUri, containerObjectTypes)
           .then(result => {
             expect(result).toEqual(true)
           })
+        expect(deleteSpy).not.toHaveBeenCalled()
       })
     })
 
@@ -283,7 +354,7 @@ describe('Indexer', () => {
       })
 
       it('throws and logs an error', () => {
-        return indexer.delete(objectUri, objectTypes)
+        return indexer.delete(objectUri, resourceObjectTypes)
           .then(() => {
             expect(logSpy).toHaveBeenCalledWith('error deleting: {}')
           })
@@ -300,7 +371,7 @@ describe('Indexer', () => {
 
       it('logs the error', async () => {
         expect.assertions(1)
-        await indexer.delete(objectUri, objectTypes)
+        await indexer.delete(objectUri, resourceObjectTypes)
         expect(logSpy).toHaveBeenCalledWith('error deleting: what a useful error message this is')
       })
     })
@@ -380,8 +451,9 @@ describe('Indexer', () => {
 
       it('does not log an error', async () => {
         await indexer.setupIndices()
-        expect(createSpy).toHaveBeenCalledTimes(indexer.indices.length)
-        expect(mappingSpy).toHaveBeenCalledTimes(indexer.indices.length)
+        const indexCount = Object.keys(config.get('indexMappings')).length
+        expect(createSpy).toHaveBeenCalledTimes(indexCount)
+        expect(mappingSpy).toHaveBeenCalledTimes(indexCount)
         expect(logSpy).not.toHaveBeenCalled()
       })
     })
@@ -432,12 +504,19 @@ describe('Indexer', () => {
     })
   })
 
-  describe('indexNameFrom()', () => {
+  describe('indexFrom()', () => {
     it('returns the resource index name by default', () => {
-      expect(indexer.indexNameFrom([])).toBe('sinopia_resources')
+      expect(indexer.indexFrom([])[0]).toBe('sinopia_resources')
+    })
+    it('returns the resource index name for a resource', () => {
+      expect(indexer.indexFrom(resourceObjectTypes)[0]).toBe('sinopia_resources')
     })
     it('returns the non RDF index name when types includes LDP-NRS', () => {
-      expect(indexer.indexNameFrom(['http://www.w3.org/ns/ldp#NonRDFSource'])).toBe('sinopia_templates')
+      // Eventually this will be 'sinopia_templates' instead of undefined
+      expect(indexer.indexFrom(['http://www.w3.org/ns/ldp#NonRDFSource'])[0]).toBe(undefined)
+    })
+    it('returns undefined for a container', () => {
+      expect(indexer.indexFrom(containerObjectTypes)[0]).toBe(undefined)
     })
   })
 })
