@@ -225,7 +225,7 @@ describe('integration tests', () => {
     }))
   })
 
-  test('new Trellis resource template is not indexed', async () => {
+  test('new Trellis resource template is indexed', async () => {
     superagent.post(config.get('platformUrl'))
       .type('application/json')
       .send(nonRdfBody)
@@ -249,7 +249,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.hits.total).toEqual(0)
+      expect(response.hits.total).toEqual(1)
     })
   })
 
