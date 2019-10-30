@@ -265,7 +265,7 @@ export default class Indexer {
   buildRDFTypes(indexObject, json) {
     indexObject['type'] = json['@graph']
       .filter((item) => item['@type'])
-      .filter((item) => !item['@type'].includes('prov:Activity'))
+      .filter((item) => item['@id'] === '')
       .map(item => item['@type'])
   }
 

@@ -40,7 +40,7 @@ describe('Indexer', () => {
   describe('index()', () => {
     const resourceJson = {
       '@graph': [{
-        '@id': objectUri,
+        '@id': '',
         '@type': 'http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle',
         'foo': 'bar',
         'mainTitle': { '@value': 'Hamlet' },
@@ -108,7 +108,7 @@ describe('Indexer', () => {
     describe('when indexing a resource without a title', () => {
       const json = {
         '@graph': [{
-          '@id': objectUri,
+          '@id': '',
           '@type': 'http://id.loc.gov/ontologies/bibframe/Note',
           'someText': { '@value': 'There is nothing either good or bad, but thinking makes it so.' },
           'hasResourceTemplate': 'ld4p:RT:bf2:Note'
@@ -147,7 +147,79 @@ describe('Indexer', () => {
           }
         })
       })
+    })
 
+    describe('when indexing an RDA resource', () => {
+      // Truncated
+      const rdaJson = {
+        '@graph': [{
+          '@id': '',
+          '@type': 'http://rdaregistry.info/Elements/c/C10006',
+          'adminMetadata': '_:b0',
+          'P20315': {
+            '@language': 'en',
+            '@value': 'What factors influence the quality of hazard mitigation plans in Washington State?'
+          },
+          'hasResourceTemplate': 'WAU:RT:RDA:Expression:etd'
+        }, {
+          '@id': '_:b0',
+          '@type': 'http://id.loc.gov/ontologies/bibframe/AdminMetadata',
+          'catalogerID': {
+            '@language': 'en',
+            '@value': 'cec23'
+          },
+          'encodingLevel': 'https://id.loc.gov/vocabulary/menclvl/f',
+          'creationDate': {
+            '@language': 'en',
+            '@value': '2019-10-23'
+          },
+          'descriptionConventions': 'https://id.loc.gov/vocabulary/descriptionConventions/rda',
+          'descriptionLanguage': 'https://id.loc.gov/vocabulary/languages/eng',
+          'source': 'https://id.loc.gov/vocabulary/organizations/wau',
+          'status': '_:b2'
+        }, {
+          '@id': '_:b1',
+          '@type': ['prov:Activity', 'as:Create'],
+          'atTime': '2019-10-23T15:40:51.049Z',
+          'wasAssociatedWith': 'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_CGd9Wq136/31b4687f-3832-4ce6-b9cf-4ac72fe0ab44'
+        }, {
+          '@id': '_:b2',
+          '@type': 'http://id.loc.gov/ontologies/bibframe/Status',
+          'code': {
+            '@language': 'en',
+            '@value': 'n'
+          }
+        }, {
+          '@id': 'https://trellis.development.sinopia.io/repository/washington/a6934df9-7158-46d3-a50f-993135ace180',
+          'wasGeneratedBy': '_:b1'
+        }]
+      }
+
+      it('calls index() on the client and returns true', () => {
+        indexer.index(rdaJson, objectUri, resourceObjectTypes).then(result => {
+          expect(result).toEqual(true)
+        })
+        expect(indexSpy).toHaveBeenCalledWith({
+          index: 'sinopia_resources',
+          type: config.get('indexType'),
+          id: '12345',
+          body: {
+            label: 'What factors influence the quality of hazard mitigation plans in Washington State?',
+            text: [
+              'What factors influence the quality of hazard mitigation plans in Washington State?',
+              'cec23',
+              '2019-10-23',
+              'n'
+            ],
+            title: ['What factors influence the quality of hazard mitigation plans in Washington State?'],
+            'title-suggest': ['what', 'factors', 'influence', 'the', 'quality', 'of', 'hazard', 'mitigation', 'plans', 'in', 'washington', 'state?'],
+            type: ['http://rdaregistry.info/Elements/c/C10006'],
+            uri: 'http://foo.bar/12345',
+            created: '2019-10-23T15:40:51.049Z',
+            modified: '2019-10-23T15:40:51.049Z'
+          }
+        })
+      })
     })
 
     describe('when indexing a resource template', () => {
@@ -289,21 +361,6 @@ describe('Indexer', () => {
         })
       })
     })
-
-    // describe('when not indexing the document', () => {
-    //   // Note that no title or subtitle
-    //   const jsonNoIndex = {
-    //     '@graph': [{
-    //       '@id': objectUri,
-    //       '@type': 'http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle',
-    //       'foo': 'bar',
-    //     }]
-    //   }
-    //   it('does not call index()', () => {
-    //     indexer.index(jsonNoIndex, objectUri, resourceObjectTypes)
-    //     expect(indexSpy).not.toHaveBeenCalled()
-    //   })
-    // })
   })
 
   describe('delete()', () => {
