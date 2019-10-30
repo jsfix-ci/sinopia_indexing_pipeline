@@ -1,8 +1,9 @@
 import config from 'config'
 import elasticsearch from 'elasticsearch'
-import { JSONPath } from 'jsonpath-plus'
 import Url from 'url-parse'
 import Logger from './Logger'
+import SinopiaTemplateIndexer from './SinopiaTemplateIndexer'
+import ResourceIndexer from './ResourceIndexer'
 
 export default class Indexer {
   constructor() {
@@ -30,11 +31,9 @@ export default class Indexer {
       this.logger.debug(`skipping indexing ${uri} (${types})`)
       return true
     }
-    const body = this.buildIndexEntryFrom(uri, json, store_document, fields)
+    const indexer = index === 'sinopia_templates' ? SinopiaTemplateIndexer : ResourceIndexer
 
-    if (! body.uri || ! body.label) {
-      throw `${uri} requires a uri and label: ${body}`
-    }
+    const body = new indexer(json, uri, store_document, fields).index()
 
     return this.client.index({
       index: index,
@@ -174,102 +173,6 @@ export default class Indexer {
   }
 
   /**
-   * Builds up an index entry out of a JSON body, given index field mappings from config
-   * @param {string} uri - Trellis URI of the document
-   * @param {Object} json - A Trellis resource (of some kind: RDFSource, BasicContainer, NonRDFSource, etc.)
-   * @param {boolean} store_document - Whether to add the document to the indexed object
-   * @param {Object} fields - Configuration for fields to be indexed
-   * @returns {Object} an object containing configured field values if any found
-   */
-  buildIndexEntryFrom(uri, json, store_document, fields) {
-    const indexObject = {}
-
-    if(store_document) {
-      indexObject.document = json
-    }
-
-    this.buildIndexEntryFields(indexObject, uri, json, fields)
-    this.buildAggregateFields(indexObject, fields)
-    this.buildAutosuggest(indexObject, fields)
-    this.buildActivityStreamFields(indexObject, json, fields)
-    this.buildRDFTypes(indexObject, json)
-    return indexObject
-  }
-
-  buildIndexEntryFields(indexObject, uri, json, fields) {
-    for (const [fieldName, fieldProperties] of Object.entries(fields)) {
-      if(fieldProperties.id) {
-        indexObject[fieldName] = uri
-      } else if (fieldProperties.path) {
-        const fieldValues = JSONPath({
-          json: json,
-          path: fieldProperties.path,
-          flatten: true
-        })
-          .filter(obj => obj['@value']) // Filter out fields without values, e.g., from the @context object
-          .map(obj => obj['@value']) // Extract the value and ignore the @language for now (this is currently coupled to how titles are modeled)
-        if (fieldValues.length > 0) indexObject[fieldName] = fieldValues
-      }
-    }
-  }
-
-  buildAggregateFields(indexObject, fields) {
-    for (const [fieldName, fieldProperties] of Object.entries(fields)) {
-      if (fieldProperties.fields) {
-        const fieldValues = fieldProperties.fields.map((fields) => {
-          return this.getFieldValues(fields, indexObject)
-          // if (values.length > 0) return values.join(fieldProperties.joinby || ' ')
-        }).filter((values) => values.length > 0)
-        if(fieldValues.length > 0) {
-          indexObject[fieldName] = fieldValues[0].join(fieldProperties.joinby || ' ')
-        }
-      }
-    }
-  }
-
-  getFieldValues(fields, indexObject) {
-    const values = []
-    fields.forEach((fieldName) => {
-      if (indexObject[fieldName] && indexObject[fieldName].length > 0) {
-        values.push(indexObject[fieldName])
-      }
-    })
-    return values
-  }
-
-  buildAutosuggest(indexObject, fields) {
-    for (const [fieldName, fieldProperties] of Object.entries(fields)) {
-      if (fieldProperties.autosuggest && indexObject[fieldName] && indexObject[fieldName].length > 0) {
-        indexObject[`${fieldName}-suggest`] = indexObject[fieldName].join(' ').split(' ').map(token => token.toLowerCase())
-      }
-    }
-  }
-
-  buildActivityStreamFields(indexObject, json, fields) {
-    for (const [fieldName, fieldProperties] of Object.entries(fields)) {
-      if(fieldProperties.asTypes) {
-        const asDate = this.getActivityStreamDate(fieldProperties.asTypes, json['@graph'])
-        if (asDate) indexObject[fieldName] = asDate
-      }
-    }
-  }
-
-  getActivityStreamDate(asTypes, json) {
-    const dates = json
-      .filter((item) => item.atTime && item['@type'])
-      .filter((item) => item['@type'].some((type) => asTypes.map((asType) => `as:${asType}`).includes(type)))
-      .map((item) => item.atTime).sort().reverse()
-    return dates.length > 0 ? dates[0] : undefined
-  }
-
-  buildRDFTypes(indexObject, json) {
-    indexObject['type'] = json['@graph']
-      .filter((item) => item['@type'])
-      .filter((item) => item['@id'] === '')
-      .map(item => item['@type'])
-  }
-
-  /**
    * Returns index information given a list of LDP types.
    * @param {Array} types - LDP type URIs of object
    * @returns {[string, store_document, fields]} name of index | undefined if should not index, whether to store document, field configuration
@@ -278,8 +181,6 @@ export default class Indexer {
     if (types.includes('http://www.w3.org/ns/ldp#BasicContainer')) return [undefined, undefined, undefined]
     const indexMappings = config.get('indexMappings')
     const index = types.includes(config.get('nonRdfTypeURI')) ? 'sinopia_templates' : 'sinopia_resources'
-    // For now, not indexing resource templates
-    if (index === 'sinopia_templates') return [undefined, undefined, undefined]
     return [index, indexMappings[index].store_document, indexMappings[index].fields]
   }
 }

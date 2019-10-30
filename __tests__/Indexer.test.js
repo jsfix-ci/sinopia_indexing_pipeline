@@ -14,7 +14,7 @@ let restoreConsole
 describe('Indexer', () => {
   const resourceObjectTypes = ['http://www.w3.org/ns/ldp#RDFSource', 'http://www.w3.org/ns/ldp#Resource']
   const containerObjectTypes = ['http://www.w3.org/ns/ldp#BasicContainer','http://www.w3.org/ns/ldp#Container','http://www.w3.org/ns/ldp#RDFSource','http://www.w3.org/ns/ldp#Resource']
-  const resourceTemplateObjectTypes = ['http://www.w3.org/ns/ldp#BasicContainer','http://www.w3.org/ns/ldp#Container','http://www.w3.org/ns/ldp#RDFSource','http://www.w3.org/ns/ldp#Resource']
+  const resourceTemplateObjectTypes = ['http://www.w3.org/ns/ldp#NonRDFSource', 'http://www.w3.org/ns/ldp#Resource']
   const objectUri = 'http://foo.bar/12345'
 
   const indexer = new Indexer()
@@ -76,7 +76,7 @@ describe('Indexer', () => {
       restoreConsole()
     })
 
-    describe('when indexing a resource', () => {
+    describe('when indexing a valid resource', () => {
       it('calls index() on the client and returns true', () => {
         indexer.index(resourceJson, objectUri, resourceObjectTypes).then(result => {
           expect(result).toEqual(true)
@@ -241,10 +241,21 @@ describe('Indexer', () => {
       }
 
       it('does not index and returns true', () => {
-        indexer.index(resourceTemplateJson, objectUri, resourceTemplateObjectTypes).then(result => {
+        indexer.index(resourceTemplateJson, 'http://foo.bar/ld4p:RT:bf2:ReferenceInstance', resourceTemplateObjectTypes).then(result => {
           expect(result).toEqual(true)
         })
-        expect(indexSpy).not.toHaveBeenCalled()
+        expect(indexSpy).toHaveBeenCalledWith({
+          index: 'sinopia_templates',
+          type: config.get('indexType'),
+          id: 'ld4p:RT:bf2:ReferenceInstance',
+          body: {
+            resourceLabel: 'Instance Referenced',
+            remark: 'used in rare materials profile',
+            resourceURI: 'http://id.loc.gov/ontologies/bibframe/Instance',
+            author: 'LD4P',
+            date: '2019-08-19'
+          }
+        })
       })
     })
 
@@ -569,8 +580,7 @@ describe('Indexer', () => {
       expect(indexer.indexFrom(resourceObjectTypes)[0]).toBe('sinopia_resources')
     })
     it('returns the non RDF index name when types includes LDP-NRS', () => {
-      // Eventually this will be 'sinopia_templates' instead of undefined
-      expect(indexer.indexFrom(['http://www.w3.org/ns/ldp#NonRDFSource'])[0]).toBe(undefined)
+      expect(indexer.indexFrom(['http://www.w3.org/ns/ldp#NonRDFSource'])[0]).toBe('sinopia_templates')
     })
     it('returns undefined for a container', () => {
       expect(indexer.indexFrom(containerObjectTypes)[0]).toBe(undefined)
