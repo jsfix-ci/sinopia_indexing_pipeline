@@ -17,7 +17,7 @@ export default class Indexer {
     this.knownDeleteResults = ['deleted']
     this.indexers = {
       sinopia_templates: SinopiaTemplateIndexer,
-      sinopia_resources : ResourceIndexer
+      sinopia_resources: ResourceIndexer
     }
   }
 
@@ -40,7 +40,7 @@ export default class Indexer {
 
     return this.client.index({
       index: index,
-      type: 'sinopia',
+      type: config.get('indexType'),
       id: this.identifierFrom(uri),
       body: new indexer(json, uri).index()
     }).then(indexResponse => {
@@ -68,7 +68,7 @@ export default class Indexer {
     }
     return this.client.delete({
       index,
-      type: 'sinopia',
+      type: config.get('indexType'),
       id: this.identifierFrom(uri)
     }).then(indexResponse => {
       if (!this.knownDeleteResults.includes(indexResponse.result))
@@ -111,7 +111,7 @@ export default class Indexer {
 
         await this.client.indices.putMapping({
           index: index,
-          type: 'sinopia',
+          type: config.get('indexType'),
           body: this.indexers[index].indexMapping
         })
       }

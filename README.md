@@ -67,14 +67,6 @@ $ curl -i -X POST -H 'Content-Type: application/ld+json' -H 'Link: <http://www.w
 
 See [Sinopia Server notes](https://github.com/LD4P/sinopia_server/wiki/Draft-Notes-for-Sinopia-Server-API-Spec) for more Trellis `curl` incantations.
 
-### Inspect indexing behavior
-
-While testing the pipeline, it may be useful for you to run test searches against ElasticSearch to inspect the resulting index entries that the pipeline created. To do this, a `npm run search` script has been included:
-
-```shell
-$ npm run search A Tale of Two Cities
-```
-
 ## Development
 
 For development purposes, you may wish to spin up all the components other than the pipeline if you'll be iterating:
