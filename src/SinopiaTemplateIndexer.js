@@ -22,4 +22,37 @@ export default class {
 
     return this.indexObject
   }
+
+  static get indexMapping() {
+    return {
+      properties: {
+        author: {
+          type: 'text',
+          store: true,
+          index: true
+        },
+        date: {
+          type: 'date',
+          store: true,
+          index: false
+        },
+        remark: {
+          type: 'text',
+          store: true,
+          index: true
+        },
+        resourceLabel: {
+          type: 'text',
+          store: true,
+          index: true
+        },
+        resourceURI: {
+          type: 'keyword',
+          store: true,
+          index: true
+        },
+      }
+    }
+  }
+
 }
