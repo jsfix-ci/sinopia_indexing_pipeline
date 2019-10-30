@@ -93,9 +93,7 @@ describe('Indexer', () => {
               'There is nothing either good or bad, but thinking makes it so.'
             ],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
-            'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
             title: ['Hamlet'],
-            'title-suggest': ['hamlet'],
             type: ['http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle'],
             uri: 'http://foo.bar/12345',
             created: '2019-10-18T16:08:43.300Z',
@@ -212,7 +210,6 @@ describe('Indexer', () => {
               'n'
             ],
             title: ['What factors influence the quality of hazard mitigation plans in Washington State?'],
-            'title-suggest': ['what', 'factors', 'influence', 'the', 'quality', 'of', 'hazard', 'mitigation', 'plans', 'in', 'washington', 'state?'],
             type: ['http://rdaregistry.info/Elements/c/C10006'],
             uri: 'http://foo.bar/12345',
             created: '2019-10-23T15:40:51.049Z',
@@ -357,9 +354,7 @@ describe('Indexer', () => {
               'There is nothing either good or bad, but thinking makes it so.'
             ],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
-            'subtitle-suggest': ['a', 'tragic', 'tale', 'about', 'a', 'prince', 'of', 'denmark'],
             title: ['Hamlet'],
-            'title-suggest': ['hamlet'],
             type:[
               [ 'http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle',
                 'http://id.loc.gov/ontologies/bibframe/WorkTitle'
@@ -519,9 +514,8 @@ describe('Indexer', () => {
 
       it('does not log an error', async () => {
         await indexer.setupIndices()
-        const indexCount = Object.keys(config.get('indexMappings')).length
-        expect(createSpy).toHaveBeenCalledTimes(indexCount)
-        expect(mappingSpy).toHaveBeenCalledTimes(indexCount)
+        expect(createSpy).toHaveBeenCalledTimes(2)
+        expect(mappingSpy).toHaveBeenCalledTimes(2)
         expect(logSpy).not.toHaveBeenCalled()
       })
     })
@@ -574,16 +568,16 @@ describe('Indexer', () => {
 
   describe('indexFrom()', () => {
     it('returns the resource index name by default', () => {
-      expect(indexer.indexFrom([])[0]).toBe('sinopia_resources')
+      expect(indexer.indexFrom([])).toBe('sinopia_resources')
     })
     it('returns the resource index name for a resource', () => {
-      expect(indexer.indexFrom(resourceObjectTypes)[0]).toBe('sinopia_resources')
+      expect(indexer.indexFrom(resourceObjectTypes)).toBe('sinopia_resources')
     })
     it('returns the non RDF index name when types includes LDP-NRS', () => {
-      expect(indexer.indexFrom(['http://www.w3.org/ns/ldp#NonRDFSource'])[0]).toBe('sinopia_templates')
+      expect(indexer.indexFrom(['http://www.w3.org/ns/ldp#NonRDFSource'])).toBe('sinopia_templates')
     })
     it('returns undefined for a container', () => {
-      expect(indexer.indexFrom(containerObjectTypes)[0]).toBe(undefined)
+      expect(indexer.indexFrom(containerObjectTypes)).toBe(undefined)
     })
   })
 })

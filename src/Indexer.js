@@ -15,6 +15,10 @@ export default class Indexer {
     this.logger = new Logger()
     this.knownIndexResults = ['created', 'updated']
     this.knownDeleteResults = ['deleted']
+    this.indexers = {
+      sinopia_templates: SinopiaTemplateIndexer,
+      sinopia_resources: ResourceIndexer
+    }
   }
 
   /**
@@ -25,21 +29,20 @@ export default class Indexer {
    * @returns {Promise} resolves to true if successful; null if not
    */
   async index(json, uri, types) {
-    const [index, store_document, fields] = this.indexFrom(types)
+    const index = this.indexFrom(types)
     this.logger.debug(`${uri} (${types}) has index ${index}`)
-    if (index === undefined) {
+
+    const indexer = this.indexers[index]
+    if (indexer === undefined) {
       this.logger.debug(`skipping indexing ${uri} (${types})`)
       return true
     }
-    const indexer = index === 'sinopia_templates' ? SinopiaTemplateIndexer : ResourceIndexer
-
-    const body = new indexer(json, uri, store_document, fields).index()
 
     return this.client.index({
       index: index,
       type: config.get('indexType'),
       id: this.identifierFrom(uri),
-      body: body
+      body: new indexer(json, uri).index()
     }).then(indexResponse => {
       if (!this.knownIndexResults.includes(indexResponse.result))
         throw { message: JSON.stringify(indexResponse) }
@@ -58,7 +61,7 @@ export default class Indexer {
    * @param {Promise} resolves to types - one or more LDP type URIs
    */
   async delete(uri, types) {
-    const [index] = this.indexFrom(types)
+    const index = this.indexFrom(types)
     if (index === undefined) {
       this.logger.debug(`skipping deleting ${uri} (${types})`)
       return true
@@ -93,12 +96,10 @@ export default class Indexer {
 
   /**
    * Create indices, if needed, and add field mappings
-   * @returns {null}
    */
   async setupIndices() {
-    const indexMappings = config.get('indexMappings')
     try {
-      for (const index of Object.keys(indexMappings)) {
+      for (const index of Object.keys(this.indexers)) {
         const indexExists = await this.client.indices.exists({ index: index })
 
         if (!indexExists) {
@@ -111,7 +112,7 @@ export default class Indexer {
         await this.client.indices.putMapping({
           index: index,
           type: config.get('indexType'),
-          body: this.buildMappingsFromConfig(indexMappings[index].fields)
+          body: this.indexers[index].indexMapping
         })
       }
     } catch(error) {
@@ -119,32 +120,6 @@ export default class Indexer {
     }
     return null
   }
-
-  /**
-   * Build field mappings from configuration
-   * @param {Object} fields - Field configuration
-   * @returns {Object}
-   */
-  buildMappingsFromConfig(fields) {
-    const mappingObject = { properties: {} }
-
-    for (const [fieldName, fieldProperties] of Object.entries(fields)) {
-      mappingObject.properties[fieldName] = {
-        type: fieldProperties.type,
-        store: fieldProperties.store == true,
-        index: fieldProperties.index == false ? false : true
-      }
-
-      if (fieldProperties.autosuggest) {
-        mappingObject.properties[`${fieldName}-suggest`] = {
-          type: 'completion'
-        }
-      }
-    }
-
-    return mappingObject
-  }
-
 
   /**
    * Remove and recreate all known indices
@@ -175,12 +150,10 @@ export default class Indexer {
   /**
    * Returns index information given a list of LDP types.
    * @param {Array} types - LDP type URIs of object
-   * @returns {[string, store_document, fields]} name of index | undefined if should not index, whether to store document, field configuration
+   * @returns {string]} name of index or undefined
    */
   indexFrom(types) {
-    if (types.includes('http://www.w3.org/ns/ldp#BasicContainer')) return [undefined, undefined, undefined]
-    const indexMappings = config.get('indexMappings')
-    const index = types.includes(config.get('nonRdfTypeURI')) ? 'sinopia_templates' : 'sinopia_resources'
-    return [index, indexMappings[index].store_document, indexMappings[index].fields]
+    if (types.includes('http://www.w3.org/ns/ldp#BasicContainer')) return undefined
+    return types.includes(config.get('nonRdfTypeURI')) ? 'sinopia_templates' : 'sinopia_resources'
   }
 }
