@@ -83,11 +83,18 @@ export default class Indexer {
   // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-asciifolding-tokenfilter.html
   indexSettings() {
     return {
-      analysis : {
-        analyzer : {
-          default : {
-            tokenizer : 'standard',
-            filter : ['lowercase', 'asciifolding']
+      analysis: {
+        analyzer: {
+          default: {
+            tokenizer: 'standard',
+            filter: ['lowercase', 'asciifolding']
+          }
+        },
+        normalizer: {
+          lowercase_normalizer: {
+            type: 'custom',
+            char_filter: [],
+            filter: ['lowercase']
           }
         }
       }

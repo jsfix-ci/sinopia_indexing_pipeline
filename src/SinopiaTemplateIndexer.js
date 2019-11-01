@@ -14,6 +14,7 @@ export default class {
    * @returns {Object} an object containing configured field values if any found
    */
   index() {
+    this.indexObject.id = this.json.id
     this.indexObject.author = this.json.author
     this.indexObject.date = this.json.date
     this.indexObject.remark = this.json.remark
@@ -26,10 +27,17 @@ export default class {
   static get indexMapping() {
     return {
       properties: {
-        author: {
-          type: 'text',
+        id: {
+          type: 'keyword',
           store: true,
-          index: true
+          index: true,
+          normalizer: 'lowercase_normalizer'
+        },
+        author: {
+          type: 'keyword',
+          store: true,
+          index: true,
+          normalizer: 'lowercase_normalizer'
         },
         date: {
           type: 'date',
@@ -37,22 +45,24 @@ export default class {
           index: false
         },
         remark: {
-          type: 'text',
+          type: 'keyword',
           store: true,
-          index: true
+          index: true,
+          normalizer: 'lowercase_normalizer'
         },
         resourceLabel: {
-          type: 'text',
+          type: 'keyword',
           store: true,
-          index: true
+          index: true,
+          normalizer: 'lowercase_normalizer'
         },
         resourceURI: {
           type: 'keyword',
           store: true,
-          index: true
+          index: true,
+          normalizer: 'lowercase_normalizer'
         },
       }
     }
   }
-
 }
