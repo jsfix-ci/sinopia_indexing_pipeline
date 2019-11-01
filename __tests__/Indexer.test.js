@@ -246,6 +246,7 @@ describe('Indexer', () => {
           type: config.get('indexType'),
           id: 'ld4p:RT:bf2:ReferenceInstance',
           body: {
+            id: 'ld4p:RT:bf2:ReferenceInstance',
             resourceLabel: 'Instance Referenced',
             remark: 'used in rare materials profile',
             resourceURI: 'http://id.loc.gov/ontologies/bibframe/Instance',
