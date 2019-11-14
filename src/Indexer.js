@@ -44,7 +44,7 @@ export default class Indexer {
       id: this.identifierFrom(uri),
       body: new indexer(json, uri).index()
     }).then(indexResponse => {
-      if (!this.knownIndexResults.includes(indexResponse.result))
+      if (!this.knownIndexResults.includes(indexResponse.body.result))
         throw { message: JSON.stringify(indexResponse) }
       return true
     }).catch(err => {

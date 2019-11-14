@@ -131,7 +131,7 @@ describe('integration tests', () => {
 
     const resourceCount = 5
     await Promise.all([...Array(resourceCount).keys()].map(i =>
-      superagent.post(config.get('platformUrl'))
+      superagent.post(`${config.get('platformUrl')}/repository`)
         .type('application/ld+json')
         .send(`{ "@context": { "mainTitle": { "@id": "http://id.loc.gov/ontologies/bibframe/mainTitle" } }, "@id": "", "mainTitle": [{ "@value": "${reindexingResourceTitle} ${i}", "@language": "en" }] }`)
         .set('Link', '<http://www.w3.org/ns/ldp#RDFSource>; rel="type"')
@@ -189,6 +189,9 @@ describe('integration tests', () => {
     // `await sleep(4900)` (the pipeline listener doesn't await any of the indexing requests
     // it spawns, because it does nothing itself with those results).
     await new Reindexer().reindex()
+
+    // Give the pipeline a chance to run
+    await sleep(4900)
 
     await Promise.all([...Array(resourceCount).keys()].map(i => {
       const identifier = `repository/${reindexingResourceSlug}_${i}`

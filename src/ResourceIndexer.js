@@ -19,7 +19,6 @@ export default class {
    * @returns {Object} an object containing configured field values if any found
    */
   index() {
-
     this.indexObject['uri'] = this.uri
     this.buildFromPath('title', '$..[mainTitle,P10223,P20315,P40085,P30156]') //BIBFRAME and RDA
     this.buildFromPath('subtitle', '$..subtitle')
