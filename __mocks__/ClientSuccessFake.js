@@ -13,7 +13,7 @@ export default class ClientSuccessFake {
       },
       exists: () => {
         return new Promise((resolve, _reject) => {
-          return resolve(exists)
+          return resolve({ body: exists })
         })
       },
       putMapping: () => {

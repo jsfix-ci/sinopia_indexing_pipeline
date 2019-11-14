@@ -159,7 +159,7 @@ describe('integration tests', () => {
         }
       }).then(response => {
         // including phrase makes it easier to find the one that fails the test, should the test fail
-        expect([identifier, response.body.hits.total]).toEqual([identifier, response.body.hits.total])
+        expect([identifier, response.body.hits.total]).toEqual([identifier, 1])
       })
     }))
 
@@ -206,7 +206,7 @@ describe('integration tests', () => {
         }
       }).then(response => {
         // including phrase makes it easier to find the one that fails the test, should the test fail
-        expect([identifier, response.body.hits.total]).toEqual([identifier, response.body.hits.total])
+        expect([identifier, response.body.hits.total]).toEqual([identifier, 1])
       })
     }))
   })
