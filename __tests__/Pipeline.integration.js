@@ -21,20 +21,6 @@ describe('integration tests', () => {
     await new Indexer().recreateIndices()
   })
 
-  afterAll(async () => {
-    // Remove test resources from indices
-    await client.delete({
-      index: 'sinopia_resources',
-      type: config.get('indexType'),
-      id: resourceSlug
-    })
-    await client.delete({
-      index: 'sinopia_templates',
-      type: config.get('indexType'),
-      id: nonRdfSlug
-    })
-  })
-
   jest.setTimeout(15000)
 
   test('resource index is clear of test document', () => {

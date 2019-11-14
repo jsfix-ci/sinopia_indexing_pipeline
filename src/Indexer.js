@@ -109,7 +109,7 @@ export default class Indexer {
       for (const index of Object.keys(this.indexers)) {
         const indexExists = await this.client.indices.exists({ index: index })
 
-        if (!indexExists) {
+        if (!indexExists.body) {
           // analysis and filter settings must be provided at index creation time; alternatively, the index can be closed, configured, and reopened.
           // otherwise, an error is thrown along the lines of "error setting up indices: [illegal_argument_exception] Can't update non dynamic settings"
           // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/6.x/api-reference.html#_indices_create
