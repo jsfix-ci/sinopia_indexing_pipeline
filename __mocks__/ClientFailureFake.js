@@ -1,7 +1,7 @@
 export default class ClientFailureFake {
   index() {
     return new Promise((resolve, _reject) => {
-      return resolve({})
+      return resolve({ body: {} })
     })
   }
   delete() {

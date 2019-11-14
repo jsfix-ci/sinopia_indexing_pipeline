@@ -307,7 +307,7 @@ describe('Indexer', () => {
       it('throws and logs an error', () => {
         return indexer.index(resourceJson, objectUri, resourceObjectTypes)
           .then(() => {
-            expect(logSpy).toHaveBeenCalledWith('error indexing: {}')
+            expect(logSpy).toHaveBeenCalledWith('error indexing: {"body":{}}')
           })
       })
     })
