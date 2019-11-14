@@ -17,5 +17,6 @@ module.exports = {
   indexUrl: process.env.INDEX_URL || 'http://localhost:9200',
   nonRdfTypeURI: process.env.NON_RDF_TYPE_URI || 'http://www.w3.org/ns/ldp#NonRDFSource',
   nonRdfMimeType: process.env.NON_RDF_MIME_TYPE || 'application/json',
-  debug:  process.env.DEBUG !== undefined ? process.env.DEBUG : true
+  debug:  process.env.DEBUG !== undefined ? process.env.DEBUG : true,
+  poolLimit: process.env.POOL_LIMIT || 2
 }
