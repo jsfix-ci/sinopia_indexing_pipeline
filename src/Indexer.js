@@ -1,5 +1,5 @@
 import config from 'config'
-import elasticsearch from 'elasticsearch'
+import elasticsearch from '@elastic/elasticsearch'
 import Url from 'url-parse'
 import Logger from './Logger'
 import SinopiaTemplateIndexer from './SinopiaTemplateIndexer'
@@ -8,7 +8,7 @@ import ResourceIndexer from './ResourceIndexer'
 export default class Indexer {
   constructor() {
     this.client = new elasticsearch.Client({
-      host: config.get('indexUrl'),
+      node: config.get('indexUrl'),
       log: 'warning',
       apiVersion: '6.8'
     })

@@ -1,12 +1,12 @@
 import config from 'config'
-import elasticsearch from 'elasticsearch'
+import elasticsearch from '@elastic/elasticsearch'
 import superagent from 'superagent'
 import Indexer from '../src/Indexer'
 import Reindexer from '../src/Reindexer'
 
 describe('integration tests', () => {
   const client = new elasticsearch.Client({
-    host: config.get('indexUrl'),
+    node: config.get('indexUrl'),
     log: 'warning'
   })
   const resourceSlug = `stanford_${Math.floor(Math.random() * 10000)}`
@@ -51,7 +51,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.hits.total).toEqual(0)
+      expect(response.body.hits.total).toEqual(0)
     })
   })
 
@@ -69,7 +69,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.hits.total).toEqual(0)
+      expect(response.body.hits.total).toEqual(0)
     })
   })
 
@@ -96,8 +96,8 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.hits.total).toEqual(1)
-      const firstHit = response.hits.hits[0]
+      expect(response.body.hits.total).toEqual(1)
+      const firstHit = response.body.hits.hits[0]
       expect(firstHit._source.title[0]).toEqual(resourceTitle)
     })
 
@@ -125,7 +125,7 @@ describe('integration tests', () => {
         }
       }).then(response => {
         // including phrase makes it easier to find the one that fails the test, should the test fail
-        expect([phrase, response.hits.total]).toEqual([phrase, totalHits])
+        expect([phrase, response.body.hits.total]).toEqual([phrase, totalHits])
       })
     }
   })
@@ -173,7 +173,7 @@ describe('integration tests', () => {
         }
       }).then(response => {
         // including phrase makes it easier to find the one that fails the test, should the test fail
-        expect([identifier, response.hits.total]).toEqual([identifier, response.hits.total])
+        expect([identifier, response.body.hits.total]).toEqual([identifier, response.body.hits.total])
       })
     }))
 
@@ -192,7 +192,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.hits.total).toEqual(0)
+      expect(response.body.hits.total).toEqual(0)
     })
 
     // The .reindex() code should work such that the Promise it returns will
@@ -220,7 +220,7 @@ describe('integration tests', () => {
         }
       }).then(response => {
         // including phrase makes it easier to find the one that fails the test, should the test fail
-        expect([identifier, response.hits.total]).toEqual([identifier, response.hits.total])
+        expect([identifier, response.body.hits.total]).toEqual([identifier, response.body.hits.total])
       })
     }))
   })
@@ -249,7 +249,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.hits.total).toEqual(1)
+      expect(response.body.hits.total).toEqual(1)
     })
   })
 
@@ -273,7 +273,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.hits.total).toEqual(0)
+      expect(response.body.hits.total).toEqual(0)
     })
   })
 
@@ -297,7 +297,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.hits.total).toEqual(0)
+      expect(response.body.hits.total).toEqual(0)
     })
   })
 })

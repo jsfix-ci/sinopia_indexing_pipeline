@@ -20,8 +20,9 @@ describe('Indexer', () => {
   const indexer = new Indexer()
 
   describe('constructor()', () => {
-    it('creates a client with the configured endpoint URL', () => {
-      expect(indexer.client.transport._config.host).toEqual(config.get('indexUrl'))
+    it('creates a client with the configured endpoint URL', async () => {
+      const info = await indexer.client.cat.indices()
+      expect(info.meta.connection.url.origin).toEqual(config.get('indexUrl'))
     })
 
     it('creates a logger', () => {
