@@ -23,7 +23,7 @@ export default class {
     this.buildFromPath('title', '$..[mainTitle,P10223,P20315,P40085,P30156]') //BIBFRAME and RDA
     this.buildFromPath('subtitle', '$..subtitle')
     this.buildLabel()
-    this.buildFromPath('text', '$..*')
+    this.buildAllText()
     this.buildActivityStreamField('created', ['Create'])
     this.buildActivityStreamField('modified', ['Create', 'Update'])
     this.buildRDFTypes()
@@ -31,13 +31,12 @@ export default class {
     if (!this.indexObject.uri || !this.indexObject.label) {
       throw `${this.uri} requires a uri and label: ${this.indexObject}`
     }
-
     return this.indexObject
   }
 
   buildFromPath(fieldName, path) {
     const fieldValues = JSONPath({
-      json: this.json,
+      json: this.json['@graph'],
       path: path,
       flatten: true
     })
@@ -45,6 +44,25 @@ export default class {
       .map(obj => obj['@value']) // Extract the value and ignore the @language for now (this is currently coupled to how titles are modeled)
     if (fieldValues.length > 0) this.indexObject[fieldName] = fieldValues
 
+  }
+
+  buildAllText() {
+    const fieldValues = JSONPath({
+      json: this.json['@graph'],
+      path: '$..*',
+      flatten: true
+    })
+      .filter(obj => obj['@value']) // Filter out fields without values or labels
+      .map(obj => obj['@value']) // Extract the value or label
+    const labelValues = JSONPath({
+      json: this.json['@graph'],
+      path: '$..*',
+      flatten: false
+    })
+      .filter(obj => obj['label']) // Filter out fields without values or labels
+      .map(obj => obj['label']) // Extract the value or label
+
+    this.indexObject['text'] = [...fieldValues, ...labelValues]
   }
 
   buildLabel() {
