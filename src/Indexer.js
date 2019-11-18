@@ -1,5 +1,5 @@
 import config from 'config'
-import elasticsearch from 'elasticsearch'
+import elasticsearch from '@elastic/elasticsearch'
 import Url from 'url-parse'
 import Logger from './Logger'
 import SinopiaTemplateIndexer from './SinopiaTemplateIndexer'
@@ -8,7 +8,7 @@ import ResourceIndexer from './ResourceIndexer'
 export default class Indexer {
   constructor() {
     this.client = new elasticsearch.Client({
-      host: config.get('indexUrl'),
+      node: config.get('indexUrl'),
       log: 'warning',
       apiVersion: '6.8'
     })
@@ -44,7 +44,7 @@ export default class Indexer {
       id: this.identifierFrom(uri),
       body: new indexer(json, uri).index()
     }).then(indexResponse => {
-      if (!this.knownIndexResults.includes(indexResponse.result))
+      if (!this.knownIndexResults.includes(indexResponse.body.result))
         throw { message: JSON.stringify(indexResponse) }
       return true
     }).catch(err => {
@@ -109,7 +109,7 @@ export default class Indexer {
       for (const index of Object.keys(this.indexers)) {
         const indexExists = await this.client.indices.exists({ index: index })
 
-        if (!indexExists) {
+        if (!indexExists.body) {
           // analysis and filter settings must be provided at index creation time; alternatively, the index can be closed, configured, and reopened.
           // otherwise, an error is thrown along the lines of "error setting up indices: [illegal_argument_exception] Can't update non dynamic settings"
           // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/6.x/api-reference.html#_indices_create

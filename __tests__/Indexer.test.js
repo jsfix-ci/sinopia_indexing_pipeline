@@ -20,10 +20,6 @@ describe('Indexer', () => {
   const indexer = new Indexer()
 
   describe('constructor()', () => {
-    it('creates a client with the configured endpoint URL', () => {
-      expect(indexer.client.transport._config.host).toEqual(config.get('indexUrl'))
-    })
-
     it('creates a logger', () => {
       expect(indexer.logger).toBeInstanceOf(Logger)
     })
@@ -311,7 +307,7 @@ describe('Indexer', () => {
       it('throws and logs an error', () => {
         return indexer.index(resourceJson, objectUri, resourceObjectTypes)
           .then(() => {
-            expect(logSpy).toHaveBeenCalledWith('error indexing: {}')
+            expect(logSpy).toHaveBeenCalledWith('error indexing: {"body":{}}')
           })
       })
     })

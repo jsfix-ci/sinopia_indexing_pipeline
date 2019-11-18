@@ -13,7 +13,7 @@ export default class ClientErrorFake {
       },
       exists: () => {
         return new Promise((resolve, _reject) => {
-          return resolve(false)
+          return resolve({ body: false })
         })
       }
     }
