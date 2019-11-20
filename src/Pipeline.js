@@ -50,7 +50,7 @@ export default class Pipeline {
         this.indexer.index(json, uri, types)
       })
       .catch(err => {
-        this.logger.error(`error processing ${uri}: ${err.message}`)
+        this.logger.error(`error processing ${uri}: ${err.message}`, err)
       })
   }
 

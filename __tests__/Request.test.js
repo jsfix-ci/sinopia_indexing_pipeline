@@ -74,7 +74,7 @@ describe('Request', () => {
         return request.response(errorMessage)
           .then(response => {
             expect(response).toEqual(null)
-            expect(logSpy).toHaveBeenCalledWith(`error resolving ${uri}: ${errorMessage}`)
+            expect(logSpy).toHaveBeenCalledWith(`error resolving ${uri}: ${errorMessage}`, expect.anything())
           })
       })
     })

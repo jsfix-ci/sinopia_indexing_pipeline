@@ -59,7 +59,7 @@ describe('Waiter', () => {
       })
       it('logs an error', async () => {
         await waiter.wait()
-        expect(logSpy).toHaveBeenCalledWith('dependencies did not start up in time: foobar')
+        expect(logSpy).toHaveBeenCalledWith('dependencies did not start up in time: foobar', expect.anything())
       })
     })
   })

@@ -29,7 +29,7 @@ export default class Request {
         }
       })
       .catch(err => {
-        this.logger.error(`error resolving ${this.uri}: ${err.message}`)
+        this.logger.error(`error resolving ${this.uri}: ${err.message}`, err)
         return null
       })
   }
