@@ -48,7 +48,7 @@ export default class Indexer {
         throw { message: JSON.stringify(indexResponse) }
       return true
     }).catch(err => {
-      this.logger.error(`error indexing: ${err.message}`)
+      this.logger.error(`error indexing: ${err.message}`, err)
       return null
     })
   }
@@ -75,7 +75,7 @@ export default class Indexer {
         throw { message: JSON.stringify(indexResponse) }
       return true
     }).catch(err => {
-      this.logger.error(`error deleting: ${err.message}`)
+      this.logger.error(`error deleting: ${err.message}`, err)
       return null
     })
   }
@@ -123,7 +123,7 @@ export default class Indexer {
         })
       }
     } catch(error) {
-      this.logger.error(`error setting up indices: ${error}`)
+      this.logger.error(`error setting up indices: ${error}`, error)
     }
     return null
   }
@@ -137,7 +137,7 @@ export default class Indexer {
       await this.client.indices.delete({ index: '_all' })
       await this.setupIndices()
     } catch(error) {
-      this.logger.error(`error recreating indices: ${error}`)
+      this.logger.error(`error recreating indices: ${error}`, error)
     }
     return null
   }

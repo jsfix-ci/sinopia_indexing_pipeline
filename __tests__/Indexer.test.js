@@ -307,7 +307,7 @@ describe('Indexer', () => {
       it('throws and logs an error', () => {
         return indexer.index(resourceJson, objectUri, resourceObjectTypes)
           .then(() => {
-            expect(logSpy).toHaveBeenCalledWith('error indexing: {"body":{}}')
+            expect(logSpy).toHaveBeenCalledWith('error indexing: {"body":{}}', expect.anything())
           })
       })
     })
@@ -323,7 +323,7 @@ describe('Indexer', () => {
       it('logs the error', async () => {
         expect.assertions(1)
         await indexer.index(resourceJson, objectUri, resourceObjectTypes)
-        expect(logSpy).toHaveBeenCalledWith('error indexing: what a useful error message this is')
+        expect(logSpy).toHaveBeenCalledWith('error indexing: what a useful error message this is', expect.anything())
       })
     })
 
@@ -416,7 +416,7 @@ describe('Indexer', () => {
       it('throws and logs an error', () => {
         return indexer.delete(objectUri, resourceObjectTypes)
           .then(() => {
-            expect(logSpy).toHaveBeenCalledWith('error deleting: {}')
+            expect(logSpy).toHaveBeenCalledWith('error deleting: {}', expect.anything())
           })
       })
     })
@@ -432,7 +432,7 @@ describe('Indexer', () => {
       it('logs the error', async () => {
         expect.assertions(1)
         await indexer.delete(objectUri, resourceObjectTypes)
-        expect(logSpy).toHaveBeenCalledWith('error deleting: what a useful error message this is')
+        expect(logSpy).toHaveBeenCalledWith('error deleting: what a useful error message this is', expect.anything())
       })
     })
   })
@@ -477,7 +477,7 @@ describe('Indexer', () => {
       it('logs an error', async () => {
         await indexer.recreateIndices()
         expect(deleteSpy).toHaveBeenCalledTimes(1)
-        expect(logSpy).toHaveBeenCalledWith('error recreating indices: could not delete indices')
+        expect(logSpy).toHaveBeenCalledWith('error recreating indices: could not delete indices', expect.anything())
       })
     })
   })
@@ -537,7 +537,7 @@ describe('Indexer', () => {
       it('logs an error', async () => {
         await indexer.setupIndices()
         expect(createSpy).toHaveBeenCalledTimes(1)
-        expect(logSpy).toHaveBeenCalledWith('error setting up indices: could not create indices')
+        expect(logSpy).toHaveBeenCalledWith('error setting up indices: could not create indices', expect.anything())
       })
     })
   })

@@ -1,4 +1,5 @@
 import config from 'config'
+import Honeybadger from 'honeybadger'
 
 export default class Logger {
   /**
@@ -13,8 +14,17 @@ export default class Logger {
   /**
    * Logs an error message
    * @param {string} message - The message to be logged
+   * @param {Object} exception - The exception object
    */
-  error(message) {
+  error(message, exception) {
     console.error(message)
+
+    Honeybadger.notify(exception, {
+      context: {
+        message: message,
+        config: config,
+        env: process.env
+      }
+    })
   }
 }

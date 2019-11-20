@@ -112,7 +112,7 @@ describe('Crawler', () => {
 
       await crawler.ldpTypesFrom('http://quux')
 
-      expect(logSpy).toHaveBeenCalledWith('during crawl, error making type-revealing request to http://quux: foobarbaz')
+      expect(logSpy).toHaveBeenCalledWith('during crawl, error making type-revealing request to http://quux: foobarbaz', expect.anything())
     })
   })
 
@@ -163,7 +163,7 @@ describe('Crawler', () => {
 
         await crawler.request(uri, callback)
 
-        expect(logSpy).toHaveBeenCalledWith('during crawl, error making mime type-specific request to http://foo.bar.edu: quuxquuux')
+        expect(logSpy).toHaveBeenCalledWith('during crawl, error making mime type-specific request to http://foo.bar.edu: quuxquuux', expect.anything())
       })
     })
   })

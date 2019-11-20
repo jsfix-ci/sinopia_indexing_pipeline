@@ -23,7 +23,7 @@ export default class Waiter {
     try {
       await waitOn(this.options)
     } catch(error) {
-      this.logger.error(`dependencies did not start up in time: ${error}`)
+      this.logger.error(`dependencies did not start up in time: ${error}`, error)
     }
   }
 }

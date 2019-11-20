@@ -20,7 +20,7 @@ export default class Reindexer {
         // pass along the .index() returned Promise in case caller wants to wait on it
         return this.indexer.index(resource, uri, types)
       } catch(error) {
-        this.logger.error(`error reindexing ${uri}: ${error}`)
+        this.logger.error(`error reindexing ${uri}: ${error}`, error)
       }
     })
   }
