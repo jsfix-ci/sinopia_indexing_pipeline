@@ -42,8 +42,14 @@ describe('Indexer', () => {
         'mainTitle': { '@value': 'Hamlet' },
         'subtitle': { '@value': 'A Tragic Tale about a Prince of Denmark' },
         'someText': { '@value': 'There is nothing either good or bad, but thinking makes it so.' },
-        'hasResourceTemplate': 'ld4p:RT:bf2:Title:AbbrTitle'
-      }, {
+        'hasResourceTemplate': 'ld4p:RT:bf2:Title:AbbrTitle',
+        'issuance': 'http://id.loc.gov/vocabulary/issuance/mono',
+      },
+      {
+        '@id': 'http://id.loc.gov/vocabulary/issuance/mono',
+        'label': 'single unit'
+      },
+      {
         '@id': '_:b0',
         '@type': ['as:Update', 'prov:Activity'],
         'atTime': '2019-10-18T16:11:33.772Z',
@@ -86,7 +92,8 @@ describe('Indexer', () => {
             text: [
               'Hamlet',
               'A Tragic Tale about a Prince of Denmark',
-              'There is nothing either good or bad, but thinking makes it so.'
+              'There is nothing either good or bad, but thinking makes it so.',
+              'single unit',
             ],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
             title: ['Hamlet'],
@@ -348,7 +355,8 @@ describe('Indexer', () => {
             text: [
               'Hamlet',
               'A Tragic Tale about a Prince of Denmark',
-              'There is nothing either good or bad, but thinking makes it so.'
+              'There is nothing either good or bad, but thinking makes it so.',
+              'single unit'
             ],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
             title: ['Hamlet'],
