@@ -1,5 +1,9 @@
 import config from 'config'
-import Honeybadger from 'honeybadger'
+import honeybadger from 'honeybadger'
+
+const Honeybadger = honeybadger.configure({
+  apiKey: process.env.HONEYBADGER_API_KEY
+})
 
 export default class Logger {
   /**
