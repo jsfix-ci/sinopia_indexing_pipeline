@@ -50,6 +50,14 @@ describe('Indexer', () => {
         'label': 'single unit'
       },
       {
+        '@id': '_:b1',
+        '@type': 'http://id.loc.gov/ontologies/bibframe/AccessPolicy',
+        'label': {
+          '@language': 'en',
+          '@value': 'Open access'
+        }
+      },
+      {
         '@id': '_:b0',
         '@type': ['as:Update', 'prov:Activity'],
         'atTime': '2019-10-18T16:11:33.772Z',
@@ -93,6 +101,7 @@ describe('Indexer', () => {
               'Hamlet',
               'A Tragic Tale about a Prince of Denmark',
               'There is nothing either good or bad, but thinking makes it so.',
+              'Open access',
               'single unit',
             ],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
@@ -356,6 +365,7 @@ describe('Indexer', () => {
               'Hamlet',
               'A Tragic Tale about a Prince of Denmark',
               'There is nothing either good or bad, but thinking makes it so.',
+              'Open access',
               'single unit'
             ],
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
