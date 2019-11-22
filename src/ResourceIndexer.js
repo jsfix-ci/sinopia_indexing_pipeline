@@ -42,6 +42,7 @@ export default class {
     })
       .filter(obj => obj['@value']) // Filter out fields without values, e.g., from the @context object
       .map(obj => obj['@value']) // Extract the value and ignore the @language for now (this is currently coupled to how titles are modeled)
+      .filter(obj => typeof obj === 'string') // Remove anything not a string
     if (fieldValues.length > 0) this.indexObject[fieldName] = fieldValues
 
   }
@@ -52,16 +53,18 @@ export default class {
       path: '$..*',
       flatten: true
     })
-      .filter(obj => obj['@value']) // Filter out fields without values or labels
-      .map(obj => obj['@value']) // Extract the value or label
+      .filter(obj => obj['@value']) // Filter out fields without values
+      .map(obj => obj['@value']) // Extract the value
+      .filter(obj => typeof obj === 'string') // Remove anything not a string
+
     const labelValues = JSONPath({
       json: this.json['@graph'],
       path: '$..*',
       flatten: false
     })
-      .filter(obj => obj['label']) // Filter out fields without values or labels
-      .map(obj => obj['label']) // Extract the value or label
-
+      .filter(obj => obj['label']) // Filter out fields without labels
+      .map(obj => obj['label']) // Extract label
+      .filter(obj => typeof obj === 'string') // Remove anything not a string
     this.indexObject['text'] = [...fieldValues, ...labelValues]
   }
 
