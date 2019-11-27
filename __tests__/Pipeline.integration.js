@@ -10,7 +10,7 @@ describe('integration tests', () => {
     log: 'warning'
   })
   const resourceSlug = `stanford_${Math.floor(Math.random() * 10000)}`
-  const resourceTitle = 'A cøol tītlé'
+  const resourceTitle = 'A cøol tĭtlé'
   const reindexingResourceTitle = 'Title for reindexing'
   const reindexingResourceSlug = `stanford_re_${Math.floor(Math.random() * 10000)}`
   const nonRdfSlug = 'resourceTemplate:foo123:Something:Excellent'
@@ -89,7 +89,7 @@ describe('integration tests', () => {
 
     const searchExpectations = [
       { phrase: resourceTitle, totalHits: 1},
-      { phrase: 'cøol tītlé', totalHits: 1},
+      { phrase: 'cøol tĭtlé', totalHits: 1},
       { phrase: 'cool title', totalHits: 1},
       { phrase: 'cöôl title', totalHits: 1},
       { phrase: 'COOL title', totalHits: 1},
