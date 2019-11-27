@@ -62,9 +62,11 @@ jobs:
           name: Build & Register Images
           # NOTE: the env variables holding docker credentials are stored in the CircleCI dashboard
           command: |
-            docker build -t ld4p/sinopia_indexing_pipeline:latest --build-arg HONEYBADGER_API_KEY=$HONEYBADGER_API_KEY .
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker build -t ld4p/sinopia_indexing_pipeline:latest --build-arg HONEYBADGER_API_KEY=$HONEYBADGER_API_KEY .
             docker push ld4p/sinopia_indexing_pipeline:latest
+            docker build -t ld4p/sinopia_elasticsearch:latest -f Dockerfile-es .
+            docker push ld4p/sinopia_elasticsearch:latest
   register_tag_image:
     <<: *defaults
     steps:
