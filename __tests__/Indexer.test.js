@@ -15,7 +15,7 @@ describe('Indexer', () => {
   const resourceObjectTypes = ['http://www.w3.org/ns/ldp#RDFSource', 'http://www.w3.org/ns/ldp#Resource']
   const containerObjectTypes = ['http://www.w3.org/ns/ldp#BasicContainer','http://www.w3.org/ns/ldp#Container','http://www.w3.org/ns/ldp#RDFSource','http://www.w3.org/ns/ldp#Resource']
   const resourceTemplateObjectTypes = ['http://www.w3.org/ns/ldp#NonRDFSource', 'http://www.w3.org/ns/ldp#Resource']
-  const objectUri = 'http://foo.bar/12345'
+  const objectUri = 'https://trellis.development.sinopia.io/repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7'
 
   const indexer = new Indexer()
 
@@ -74,7 +74,7 @@ describe('Indexer', () => {
     }
 
     const clientMock = new ClientSuccessFake()
-    const indexSpy = jest.spyOn(clientMock, 'index')
+    const indexSpy = jest.spyOn(clientMock, 'index').mockResolvedValue({body: {result: 'created'}})
 
     beforeAll(() => {
       indexer.client = clientMock
@@ -88,13 +88,11 @@ describe('Indexer', () => {
 
     describe('when indexing a valid resource', () => {
       it('calls index() on the client and returns true', () => {
-        indexer.index(resourceJson, objectUri, resourceObjectTypes).then(result => {
-          expect(result).toEqual(true)
-        })
+        expect(indexer.index(resourceJson, objectUri, resourceObjectTypes)).resolves.toEqual(true)
         expect(indexSpy).toHaveBeenCalledWith({
           index: 'sinopia_resources',
           type: config.get('indexType'),
-          id: '12345',
+          id: 'repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
           body: {
             label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
             text: [
@@ -107,9 +105,10 @@ describe('Indexer', () => {
             subtitle: ['A Tragic Tale about a Prince of Denmark'],
             title: ['Hamlet'],
             type: ['http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle'],
-            uri: 'http://foo.bar/12345',
+            uri: 'https://trellis.development.sinopia.io/repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
             created: '2019-10-18T16:08:43.300Z',
-            modified: '2019-10-18T16:11:33.772Z'
+            modified: '2019-10-18T16:11:33.772Z',
+            group: 'stanford',
           }
         })
       })
@@ -138,22 +137,21 @@ describe('Indexer', () => {
         }],
       }
       it('uses the URI as the label', () => {
-        indexer.index(json, objectUri, resourceObjectTypes).then(result => {
-          expect(result).toEqual(true)
-        })
+        expect(indexer.index(json, objectUri, resourceObjectTypes)).resolves.toEqual(true)
         expect(indexSpy).toHaveBeenCalledWith({
           index: 'sinopia_resources',
           type: config.get('indexType'),
-          id: '12345',
+          id: 'repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
           body: {
-            label: 'http://foo.bar/12345',
+            label: 'https://trellis.development.sinopia.io/repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
             text: [
               'There is nothing either good or bad, but thinking makes it so.'
             ],
             type: ['http://id.loc.gov/ontologies/bibframe/Note'],
-            uri: 'http://foo.bar/12345',
+            uri: 'https://trellis.development.sinopia.io/repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
             created: '2019-10-18T16:08:43.300Z',
-            modified: '2019-10-18T16:11:33.772Z'
+            modified: '2019-10-18T16:11:33.772Z',
+            group: 'stanford',
           }
         })
       })
@@ -206,13 +204,11 @@ describe('Indexer', () => {
       }
 
       it('calls index() on the client and returns true', () => {
-        indexer.index(rdaJson, objectUri, resourceObjectTypes).then(result => {
-          expect(result).toEqual(true)
-        })
+        expect(indexer.index(rdaJson, objectUri, resourceObjectTypes)).resolves.toEqual(true)
         expect(indexSpy).toHaveBeenCalledWith({
           index: 'sinopia_resources',
           type: config.get('indexType'),
-          id: '12345',
+          id: 'repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
           body: {
             label: 'What factors influence the quality of hazard mitigation plans in Washington State?',
             text: [
@@ -223,9 +219,10 @@ describe('Indexer', () => {
             ],
             title: ['What factors influence the quality of hazard mitigation plans in Washington State?'],
             type: ['http://rdaregistry.info/Elements/c/C10006'],
-            uri: 'http://foo.bar/12345',
+            uri: 'https://trellis.development.sinopia.io/repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
             created: '2019-10-23T15:40:51.049Z',
-            modified: '2019-10-23T15:40:51.049Z'
+            modified: '2019-10-23T15:40:51.049Z',
+            group: 'stanford',
           }
         })
       })
@@ -250,9 +247,7 @@ describe('Indexer', () => {
       }
 
       it('does not index and returns true', () => {
-        indexer.index(resourceTemplateJson, 'http://foo.bar/ld4p:RT:bf2:ReferenceInstance', resourceTemplateObjectTypes).then(result => {
-          expect(result).toEqual(true)
-        })
+        expect(indexer.index(resourceTemplateJson, 'http://foo.bar/ld4p:RT:bf2:ReferenceInstance', resourceTemplateObjectTypes)).resolves.toEqual(true)
         expect(indexSpy).toHaveBeenCalledWith({
           index: 'sinopia_templates',
           type: config.get('indexType'),
@@ -305,9 +300,7 @@ describe('Indexer', () => {
         }
       }
       it('does not index and returns true', () => {
-        indexer.index(containerJson, objectUri, containerObjectTypes).then(result => {
-          expect(result).toEqual(true)
-        })
+        expect(indexer.index(containerJson, objectUri, containerObjectTypes)).resolves.toEqual(true)
         expect(indexSpy).not.toHaveBeenCalled()
       })
     })
@@ -358,7 +351,7 @@ describe('Indexer', () => {
         expect(indexSpy2).toHaveBeenCalledWith({
           index: 'sinopia_resources',
           type: config.get('indexType'),
-          id: '12345',
+          id: 'repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
           body: {
             label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
             text: [
@@ -375,9 +368,10 @@ describe('Indexer', () => {
                 'http://id.loc.gov/ontologies/bibframe/WorkTitle'
               ],
             ],
-            uri: 'http://foo.bar/12345',
+            uri: 'https://trellis.development.sinopia.io/repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
             created: '2019-10-18T16:08:43.300Z',
-            modified: '2019-10-18T16:11:33.772Z'
+            modified: '2019-10-18T16:11:33.772Z',
+            group: 'stanford',
           }
         })
       })
@@ -409,7 +403,7 @@ describe('Indexer', () => {
       expect(deleteSpy).toHaveBeenCalledWith({
         index: 'sinopia_resources',
         type: config.get('indexType'),
-        id: '12345'
+        id: 'repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7'
       })
     })
 

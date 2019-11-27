@@ -27,6 +27,7 @@ export default class {
     this.buildActivityStreamField('created', ['Create'])
     this.buildActivityStreamField('modified', ['Create', 'Update'])
     this.buildRDFTypes()
+    this.buildGroup()
 
     if (!this.indexObject.uri || !this.indexObject.label) {
       throw `${this.uri} requires a uri and label: ${this.indexObject}`
@@ -94,6 +95,10 @@ export default class {
       .map(item => item['@type'])
   }
 
+  buildGroup() {
+    this.indexObject['group'] = this.uri.split('/')[4]
+  }
+
   static get indexMapping() {
     return {
       properties: {
@@ -135,6 +140,11 @@ export default class {
         text: {
           type: 'text',
           store: false,
+          index: true
+        },
+        group: {
+          type: 'keyword',
+          store: true,
           index: true
         }
       }
