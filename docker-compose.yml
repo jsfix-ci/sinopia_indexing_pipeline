@@ -74,7 +74,9 @@ services:
     ports:
       - 5432:5432
   search:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+    build:
+      context: .
+      dockerfile: Dockerfile-es
     entrypoint:
       - elasticsearch
       - -Ehttp.port=9200
