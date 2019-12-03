@@ -86,9 +86,39 @@ describe('Indexer', () => {
       restoreConsole()
     })
 
-    describe('when indexing a valid resource', () => {
+    describe('when indexing a valid resource with a relative URI', () => {
       it('calls index() on the client and returns true', () => {
         expect(indexer.index(resourceJson, objectUri, resourceObjectTypes)).resolves.toEqual(true)
+        expect(indexSpy).toHaveBeenCalledWith({
+          index: 'sinopia_resources',
+          type: config.get('indexType'),
+          id: 'repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
+          body: {
+            label: 'Hamlet: A Tragic Tale about a Prince of Denmark',
+            text: [
+              'Hamlet',
+              'A Tragic Tale about a Prince of Denmark',
+              'There is nothing either good or bad, but thinking makes it so.',
+              'Open access',
+              'single unit',
+            ],
+            subtitle: ['A Tragic Tale about a Prince of Denmark'],
+            title: ['Hamlet'],
+            type: ['http://id.loc.gov/ontologies/bibframe/AbbreviatedTitle'],
+            uri: 'https://trellis.development.sinopia.io/repository/stanford/f149263f-b30f-4b8b-a755-5961dd7a1ab7',
+            created: '2019-10-18T16:08:43.300Z',
+            modified: '2019-10-18T16:11:33.772Z',
+            group: 'stanford',
+          }
+        })
+      })
+    })
+
+    describe('when indexing a valid resource with a URI', () => {
+      it('calls index() on the client and returns true', () => {
+        const resourceJsonWithURI = {...resourceJson}
+        resourceJsonWithURI['@graph'][0]['@id'] = objectUri
+        expect(indexer.index(resourceJsonWithURI, objectUri, resourceObjectTypes)).resolves.toEqual(true)
         expect(indexSpy).toHaveBeenCalledWith({
           index: 'sinopia_resources',
           type: config.get('indexType'),
