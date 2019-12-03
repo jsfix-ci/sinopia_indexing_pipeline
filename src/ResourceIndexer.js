@@ -89,9 +89,12 @@ export default class {
   }
 
   buildRDFTypes() {
+    // This handles resources that have relative URIs (<> or '') or URIs.
+    // Our previous approach of saving resources as N-Triples resulted in resources
+    // with relative URIs.
     this.indexObject['type'] = this.json['@graph']
       .filter((item) => item['@type'])
-      .filter((item) => item['@id'] === '')
+      .filter((item) => item['@id'] === '' || item['@id'] === this.uri)
       .map(item => item['@type'])
   }
 
