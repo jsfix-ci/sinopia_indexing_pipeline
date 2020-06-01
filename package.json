@@ -26,8 +26,8 @@
     "test": "ALLOW_CONFIG_MUTATIONS=true jest --colors --runInBand"
   },
   "dependencies": {
-    "@babel/plugin-proposal-optional-chaining": "^7.9.0",
-    "@babel/runtime": "^7.9.6",
+    "@babel/plugin-proposal-optional-chaining": "^7.10.1",
+    "@babel/runtime": "^7.10.2",
     "@elastic/elasticsearch": "^7.7.1",
     "config": "^3.3.1",
     "honeybadger": "^1.4.0",
@@ -39,18 +39,18 @@
     "wait-on": "^3.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.6",
-    "@babel/node": "^7.8.7",
-    "@babel/plugin-transform-runtime": "^7.9.6",
-    "@babel/preset-env": "^7.9.6",
+    "@babel/core": "^7.10.2",
+    "@babel/node": "^7.10.1",
+    "@babel/plugin-transform-runtime": "^7.10.1",
+    "@babel/preset-env": "^7.10.2",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^24.1.0",
     "eslint": "^6.5.1",
-    "eslint-plugin-jest": "^23.13.1",
+    "eslint-plugin-jest": "^23.13.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-utils": ">=1.4.1",
     "jest": "^24.1.0",
-    "jest-mock-console": "^1.0.0",
+    "jest-mock-console": "^1.0.1",
     "minimist": "^1.2.5",
     "nodemon": "^2.0.4"
   }
