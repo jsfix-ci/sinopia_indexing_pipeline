@@ -108,12 +108,14 @@ export default class {
         title: {
           type: 'text',
           store: true,
-          index: true
+          index: true,
+          fielddata: true
         },
         subtitle: {
           type: 'text',
           store: true,
-          index: true
+          index: true,
+          fielddata: true
         },
         type:  {
           type: 'keyword',

@@ -10,7 +10,7 @@ export default class Indexer {
     this.client = new elasticsearch.Client({
       node: config.get('indexUrl'),
       log: 'warning',
-      apiVersion: '6.8'
+      apiVersion: '7.4'
     })
     this.logger = new Logger()
     this.knownIndexResults = ['created', 'updated']
@@ -115,11 +115,11 @@ export default class Indexer {
           // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/6.x/api-reference.html#_indices_create
           await this.client.indices.create({ index: index, body: { settings: this.indexSettings() } })
         }
-
         await this.client.indices.putMapping({
           index: index,
           type: config.get('indexType'),
-          body: this.indexers[index].indexMapping
+          body: this.indexers[index].indexMapping,
+          include_type_name: true
         })
       }
     } catch(error) {
