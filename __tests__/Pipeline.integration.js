@@ -37,7 +37,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.body.hits.total).toEqual(0)
+      expect(response.body.hits.total.value).toEqual(0)
     })
   })
 
@@ -55,7 +55,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.body.hits.total).toEqual(0)
+      expect(response.body.hits.total.value).toEqual(0)
     })
   })
 
@@ -82,7 +82,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.body.hits.total).toEqual(1)
+      expect(response.body.hits.total.value).toEqual(1)
       const firstHit = response.body.hits.hits[0]
       expect(firstHit._source.title[0]).toEqual(resourceTitle)
     })
@@ -111,7 +111,7 @@ describe('integration tests', () => {
         }
       }).then(response => {
         // including phrase makes it easier to find the one that fails the test, should the test fail
-        expect([phrase, response.body.hits.total]).toEqual([phrase, totalHits])
+        expect([phrase, response.body.hits.total.value]).toEqual([phrase, totalHits])
       })
     }
   })
@@ -159,7 +159,7 @@ describe('integration tests', () => {
         }
       }).then(response => {
         // including phrase makes it easier to find the one that fails the test, should the test fail
-        expect([identifier, response.body.hits.total]).toEqual([identifier, 1])
+        expect([identifier, response.body.hits.total.value]).toEqual([identifier, 1])
       })
     }))
 
@@ -178,7 +178,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.body.hits.total).toEqual(0)
+      expect(response.body.hits.total.value).toEqual(0)
     })
 
     // The .reindex() code should work such that the Promise it returns will
@@ -209,7 +209,7 @@ describe('integration tests', () => {
         }
       }).then(response => {
         // including phrase makes it easier to find the one that fails the test, should the test fail
-        expect([identifier, response.body.hits.total]).toEqual([identifier, 1])
+        expect([identifier, response.body.hits.total.value]).toEqual([identifier, 1])
       })
     }))
   })
@@ -238,7 +238,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.body.hits.total).toEqual(1)
+      expect(response.body.hits.total.value).toEqual(1)
     })
   })
 
@@ -262,7 +262,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.body.hits.total).toEqual(0)
+      expect(response.body.hits.total.value).toEqual(0)
     })
   })
 
@@ -286,7 +286,7 @@ describe('integration tests', () => {
         }
       }
     }).then(response => {
-      expect(response.body.hits.total).toEqual(0)
+      expect(response.body.hits.total.value).toEqual(0)
     })
   })
 })
