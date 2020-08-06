@@ -1,7 +1,7 @@
 import mockConsole from 'jest-mock-console'
 import waitOn from 'wait-on'
 import Logger from '../src/Logger'
-import Waiter from '../src/Waiter'
+import Waiter from '../src/ElasticSearchWaiter'
 
 // Don't actually wait
 jest.mock('wait-on')
@@ -9,7 +9,7 @@ jest.mock('wait-on')
 // Outermost-scope variable to support mocking/restoring the `console` object
 let restoreConsole = null
 
-describe('Waiter', () => {
+describe('ElasticSearchWaiter', () => {
   describe('constructor()', () => {
     const waiter = new Waiter()
 

@@ -46,9 +46,9 @@ jobs:
             npm run ci
             ./cc-test-reporter after-build --exit-code $?
       - setup_remote_docker
-      - run:
-          name: Run integration tests
-          command: docker-compose run integration
+      # - run:
+      #     name: Run integration tests
+      #     command: docker-compose run integration
   register_latest_image:
     <<: *defaults
     steps:

@@ -2,19 +2,17 @@ import config from 'config'
 import waitOn from 'wait-on'
 import Logger from './Logger'
 
-export default class Waiter {
-  constructor(options = {}) {
+export default class ElasticSearchWaiter {
+  constructor() {
     this.options = {
       resources: [
         // indexUrl begins with `http[s]`, so the `tcp:` prefix is not needed
-        config.get('indexUrl'),
-        `tcp:${config.get('brokerHost')}:${config.get('brokerPort')}`
+        config.get('indexUrl')
       ],
       log: true, // print status reports
-      interval: 1000, // check to see whether ES and MQ are up every 5s
+      interval: 1000, // check to see whether ES are up every 5s
       timeout: 180000, // give up after 3m
       tcpTimeout: 180000, // give up after 3m
-      ...options // allow injection of options via constructor
     }
     this.logger = new Logger()
   }
