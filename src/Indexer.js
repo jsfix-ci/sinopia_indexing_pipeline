@@ -1,9 +1,11 @@
 import config from 'config'
 import elasticsearch from '@elastic/elasticsearch'
-import Url from 'url-parse'
 import Logger from './Logger'
-import SinopiaTemplateIndexer from './SinopiaTemplateIndexer'
+import TemplateIndexer from './TemplateIndexer'
 import ResourceIndexer from './ResourceIndexer'
+const Readable = require('stream').Readable
+const ParserJsonld = require('@rdfjs/parser-jsonld')
+import rdf from 'rdf-ext'
 
 export default class Indexer {
   constructor() {
@@ -16,33 +18,44 @@ export default class Indexer {
     this.knownIndexResults = ['created', 'updated']
     this.knownDeleteResults = ['deleted']
     this.indexers = {
-      sinopia_templates: SinopiaTemplateIndexer,
-      sinopia_resources: ResourceIndexer
+      template: TemplateIndexer,
+      resource: ResourceIndexer
+    }
+    this.indexes = {
+      template: 'sinopia_templates',
+      resource: 'sinopia_resources'
     }
   }
 
   /**
    * Uses client to create or update index entry
-   * @param {Object} json - Object to be indexed
-   * @param {string} uri - URI of object to be indexed
-   * @param {string} types - one or more LDP type URIs
+   * @param {Object} doc - Document for resource, including resource and headers
    * @returns {Promise} resolves to true if successful; null if not
    */
-  async index(json, uri, types) {
-    const index = this.indexFrom(types)
-    this.logger.debug(`${uri} (${types}) has index ${index}`)
+  async index(doc) {
+    const dataset = await this.datasetFromJsonld(doc.data)
+    const resourceType = this.resourceTypeFor(dataset, doc.uri)
+    if(!resourceType) {
+      this.logger.error(`Could not determine resource type for ${doc.uri}: ${JSON.stringify(doc)}`)
+      return null
+    }
 
-    const indexer = this.indexers[index]
+    const index = this.indexes[resourceType]
+
+    const indexer = this.indexers[resourceType]
     if (indexer === undefined) {
-      this.logger.debug(`skipping indexing ${uri} (${types})`)
+      this.logger.debug(`skipping indexing ${doc.uri} (${resourceType})`)
       return true
     }
+
+    const body = new indexer(doc, dataset).index()
+    this.logger.debug(`Indexing ${doc.uri} (${resourceType}) into index ${index}: ${JSON.stringify(body)}`)
 
     return this.client.index({
       index: index,
       type: config.get('indexType'),
-      id: this.identifierFrom(uri),
-      body: new indexer(json, uri).index()
+      id: doc.id,
+      body
     }).then(indexResponse => {
       if (!this.knownIndexResults.includes(indexResponse.body.result))
         throw { message: JSON.stringify(indexResponse) }
@@ -55,28 +68,33 @@ export default class Indexer {
 
   /**
    * Uses client to delete index entry
-   * @param {string} uri - URI of object to be indexed
-   * @param {string} types - one or more LDP type URIs
+   * @param {Object} doc - Document for resource, including resource and headers
    * @returns {?boolean} true if successful; null if not
-   * @param {Promise} resolves to types - one or more LDP type URIs
    */
-  async delete(uri, types) {
-    const index = this.indexFrom(types)
-    if (index === undefined) {
-      this.logger.debug(`skipping deleting ${uri} (${types})`)
-      return true
+  async delete(doc) {
+    const uri = `${config.get('uriPrefix')}/${doc.id}`
+
+    const dataset = await this.datasetFromJsonld(doc.data)
+
+    const resourceType = this.resourceTypeFor(dataset, doc.uri)
+    if(!resourceType) {
+      this.logger.error(`Could not determine resource type for ${doc.uri}`)
+      return false
     }
+    const index = this.indexes[resourceType]
+    this.logger.debug(`deleting ${uri} from index`)
+
     return this.client.delete({
       index,
       type: config.get('indexType'),
-      id: this.identifierFrom(uri)
+      id: doc.id
     }).then(indexResponse => {
       if (!this.knownDeleteResults.includes(indexResponse.result))
         throw { message: JSON.stringify(indexResponse) }
       return true
     }).catch(err => {
       this.logger.error(`error deleting: ${err.message}`, err)
-      return null
+      return false
     })
   }
 
@@ -106,7 +124,8 @@ export default class Indexer {
    */
   async setupIndices() {
     try {
-      for (const index of Object.keys(this.indexers)) {
+      for (const resourceType of Object.keys(this.indexers)) {
+        const index = this.indexes[resourceType]
         const indexExists = await this.client.indices.exists({ index: index })
 
         if (!indexExists.body) {
@@ -118,7 +137,7 @@ export default class Indexer {
         await this.client.indices.putMapping({
           index: index,
           type: config.get('indexType'),
-          body: this.indexers[index].indexMapping,
+          body: this.indexers[resourceType].indexMapping,
           include_type_name: true
         })
       }
@@ -142,25 +161,36 @@ export default class Indexer {
     return null
   }
 
-  /**
-   * Strips scheme/host/port from URI
-   * @param {string} uri - URI of object, e.g., https://foo.bar/baz-quux-quuux
-   * @returns {string} path from URI, e.g., baz-quux-quuux
-   */
-  identifierFrom(uri) {
-    // pathname looks like /baz-quux-quuux; remove the slash
-    const identifier = new Url(uri).pathname.substr(1) || config.get('rootNodeIdentifier')
-    this.logger.debug(`identifier from ${uri} is ${identifier}`)
-    return identifier
+  resourceTypeFor(dataset, uri) {
+    const typeQuads = dataset.match(rdf.namedNode(uri), rdf.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')).toArray()
+    if(typeQuads.length === 0) return null
+    const resourceClass = typeQuads[0].object.value
+    return resourceClass === 'http://sinopia.io/vocabulary/ResourceTemplate' ? 'template' : 'resource'
   }
 
-  /**
-   * Returns index information given a list of LDP types.
-   * @param {Array} types - LDP type URIs of object
-   * @returns {string]} name of index or undefined
-   */
-  indexFrom(types) {
-    if (types.includes('http://www.w3.org/ns/ldp#BasicContainer')) return undefined
-    return types.includes(config.get('nonRdfTypeURI')) ? 'sinopia_templates' : 'sinopia_resources'
+  async datasetFromJsonld(jsonld) {
+    const parserJsonld = new ParserJsonld()
+
+    const input = new Readable({
+      read: () => {
+        input.push(JSON.stringify(jsonld))
+        input.push(null)
+      }
+    })
+
+    const output = parserJsonld.import(input)
+    const dataset = rdf.dataset()
+
+    output.on('data', quad => {
+      dataset.add(quad)
+    })
+
+    return new Promise((resolve, reject) => {
+      output.on('end', resolve)
+      output.on('error', reject)
+    })
+      .then(() => {
+        return dataset
+      })
   }
 }
