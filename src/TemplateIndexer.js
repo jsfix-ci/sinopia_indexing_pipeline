@@ -18,7 +18,10 @@ export default class {
    * @returns {Object} an object containing configured field values if any found
    */
   index() {
-    this.indexObject.id = this.valueFor('http://sinopia.io/vocabulary/hasResourceId')
+    const resourceId = this.valueFor('http://sinopia.io/vocabulary/hasResourceId')
+    // Don't index base templates (i.e., templates for templates).
+    if(resourceId.startsWith('sinopia:template:')) return null
+    this.indexObject.id = resourceId
     this.indexObject.uri = this.doc.uri
     this.indexObject.author = this.valueFor('http://sinopia.io/vocabulary/hasAuthor')
     this.indexObject.date = this.valueFor('http://sinopia.io/vocabulary/hasDate')
