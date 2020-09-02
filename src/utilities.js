@@ -1,4 +1,7 @@
 import _ from 'lodash'
+const Readable = require('stream').Readable
+const ParserJsonld = require('@rdfjs/parser-jsonld')
+import rdf from 'rdf-ext'
 
 export const replaceInKeys = (obj, from, to) => {
   return _.cloneDeepWith(obj, function (cloneObj) {
@@ -12,4 +15,28 @@ export const replaceInKeys = (obj, from, to) => {
   })
 }
 
-export const noop = () => {}
+export const datasetFromJsonld = (jsonld) => {
+  const parserJsonld = new ParserJsonld()
+
+  const input = new Readable({
+    read: () => {
+      input.push(JSON.stringify(jsonld))
+      input.push(null)
+    }
+  })
+
+  const output = parserJsonld.import(input)
+  const dataset = rdf.dataset()
+
+  output.on('data', quad => {
+    dataset.add(quad)
+  })
+
+  return new Promise((resolve, reject) => {
+    output.on('end', resolve)
+    output.on('error', reject)
+  })
+    .then(() => {
+      return dataset
+    })
+}

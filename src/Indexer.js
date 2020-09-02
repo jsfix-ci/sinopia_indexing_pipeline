@@ -3,9 +3,8 @@ import elasticsearch from '@elastic/elasticsearch'
 import Logger from './Logger'
 import TemplateIndexer from './TemplateIndexer'
 import ResourceIndexer from './ResourceIndexer'
-const Readable = require('stream').Readable
-const ParserJsonld = require('@rdfjs/parser-jsonld')
 import rdf from 'rdf-ext'
+import { datasetFromJsonld } from './utilities'
 
 export default class Indexer {
   constructor() {
@@ -33,7 +32,7 @@ export default class Indexer {
    * @returns {Promise} resolves to true if successful; null if not
    */
   async index(doc) {
-    const dataset = await this.datasetFromJsonld(doc.data)
+    const dataset = await datasetFromJsonld(doc.data)
     const resourceType = this.resourceTypeFor(dataset, doc.uri)
     if(!resourceType) {
       this.logger.error(`Could not determine resource type for ${doc.uri}: ${JSON.stringify(doc)}`)
@@ -43,12 +42,17 @@ export default class Indexer {
     const index = this.indexes[resourceType]
 
     const indexer = this.indexers[resourceType]
-    if (indexer === undefined) {
+    if (!indexer) {
       this.logger.debug(`skipping indexing ${doc.uri} (${resourceType})`)
       return true
     }
 
     const body = new indexer(doc, dataset).index()
+    if (!body) {
+      this.logger.debug(`skipping indexing ${doc.uri} (${resourceType})`)
+      return true
+    }
+
     this.logger.debug(`Indexing ${doc.uri} (${resourceType}) into index ${index}: ${JSON.stringify(body)}`)
 
     return this.client.index({
@@ -74,7 +78,7 @@ export default class Indexer {
   async delete(doc) {
     const uri = `${config.get('uriPrefix')}/${doc.id}`
 
-    const dataset = await this.datasetFromJsonld(doc.data)
+    const dataset = await datasetFromJsonld(doc.data)
 
     const resourceType = this.resourceTypeFor(dataset, doc.uri)
     if(!resourceType) {
@@ -168,29 +172,4 @@ export default class Indexer {
     return resourceClass === 'http://sinopia.io/vocabulary/ResourceTemplate' ? 'template' : 'resource'
   }
 
-  async datasetFromJsonld(jsonld) {
-    const parserJsonld = new ParserJsonld()
-
-    const input = new Readable({
-      read: () => {
-        input.push(JSON.stringify(jsonld))
-        input.push(null)
-      }
-    })
-
-    const output = parserJsonld.import(input)
-    const dataset = rdf.dataset()
-
-    output.on('data', quad => {
-      dataset.add(quad)
-    })
-
-    return new Promise((resolve, reject) => {
-      output.on('end', resolve)
-      output.on('error', reject)
-    })
-      .then(() => {
-        return dataset
-      })
-  }
 }
