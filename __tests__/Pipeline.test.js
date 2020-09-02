@@ -12,6 +12,14 @@ import ClientSuccessFake from '../__mocks__/ClientSuccessFake'
 // Outermost-scope variable to support mocking/restoring the `console` object
 let restoreConsole = null
 
+const sampleDoc = {
+  'id':'sinopia:resourceTemplate:schema:Thing',
+  'uri':'http://localhost:3000/repository/sinopia:resourceTemplate:schema:Thing',
+  'author':'Jeremy Nelson',
+  'resourceLabel':'The most generic type of item',
+  'resourceURI':'http://schema.org/Thing'
+}
+
 describe('Pipeline', () => {
   const pipeline = new Pipeline()
 
@@ -58,9 +66,7 @@ describe('Pipeline', () => {
     describe('when handling insert', () => {
       const message = {
         operationType: 'insert',
-        fullDocument: {
-          _id: 'abcde4345q23'
-        }
+        fullDocument: sampleDoc
       }
 
       beforeEach(() => {
@@ -82,7 +88,7 @@ describe('Pipeline', () => {
     describe('when handling deletes', () => {
       const message = {
         operationType: 'delete',
-        fullDocument: {}
+        fullDocument: sampleDoc
       }
 
       beforeEach(() => {
@@ -98,9 +104,7 @@ describe('Pipeline', () => {
     describe('when handling unsupported operations', () => {
       const message = {
         operationType: 'fooBall',
-        fullDocument: {
-          borked: true
-        }
+        fullDocument: sampleDoc
       }
 
       beforeEach(() => {
