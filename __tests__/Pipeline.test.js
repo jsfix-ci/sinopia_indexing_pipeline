@@ -14,7 +14,7 @@ let restoreConsole = null
 
 const sampleDoc = {
   'id':'sinopia:resourceTemplate:schema:Thing',
-  'uri':'http://localhost:3000/repository/sinopia:resourceTemplate:schema:Thing',
+  'uri':'http://localhost:3000/resource/sinopia:resourceTemplate:schema:Thing',
   'author':'Jeremy Nelson',
   'resourceLabel':'The most generic type of item',
   'resourceURI':'http://schema.org/Thing'
