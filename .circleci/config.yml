@@ -5,7 +5,7 @@
 
 defaults: &defaults
   docker:
-    - image: circleci/node:10.15.3
+    - image: circleci/node:14.11.0
   working_directory: ~/sinopia_indexing_pipeline
 
 version: 2

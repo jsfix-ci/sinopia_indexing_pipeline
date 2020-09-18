@@ -1,4 +1,4 @@
-FROM circleci/node:10.15.3
+FROM circleci/node:14.11.0
 
 ARG HONEYBADGER_API_KEY
 
