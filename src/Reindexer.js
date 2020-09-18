@@ -21,13 +21,14 @@ export default class Reindexer {
       .then(async (client) => {
         try {
           this.logger.debug(`querying ${this.dbName}.${this.collectionName} for reindex`)
-          await client.db(this.dbName).collection(this.collectionName).find().forEach(async (doc) => {
-            // Wait 500ms to allow ES to keep up. Maybe this isn't needed in prod?
-            await new Promise(r => setTimeout(r, 500))
+          const cursor = client.db(this.dbName).collection(this.collectionName).find()
+          while(await cursor.hasNext()) {
+            const doc = await cursor.next()
+
             // Need to map ! back to . in keys.
             await this.indexer.index(replaceInKeys(doc, '!', '.'))
-          })
-
+          }
+          this.logger.debug('done reindexing')
         } finally {
           client.close()
         }
