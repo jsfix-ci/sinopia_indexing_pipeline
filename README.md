@@ -4,22 +4,30 @@
 
 # Sinopia Indexing Pipeline
 
-This is the repository for the Sinopia Indexing Pipeline. The pipeline is a Node application that listens for messages (sent to a queue via STOMP), and for each message (a W3C Activity Streams message):
+This is the repository for the Sinopia Indexing Pipeline. The pipeline is a Node application that
+responds to MongoDB [Change Streams](https://docs.mongodb.com/manual/changeStreams/) and
+indexes parts of the document into ElasticSearch:
 
-* Parses a subject URI out of the message. This URI corresponds to a Trellis resource that has been changed (add, edited, deleted).
-* Dereferences the URI, asking for a JSON-LD representation.
+* Extracts the JSON-LD representation from the `data` property in the MongoDB document
 * Indexes the JSON-LD, or a derivative thereof, in ElasticSearch.
 
-The pipeline also includes a `bin/reindex` command that will wipe all ElasticSearch indices and reindex Trellis by crawling the tree of resources contained within Trellis.
+The pipeline also includes a `bin/reindex` command that will wipe all ElasticSearch indices and reindex by crawling MongoDB.
 
-**Note** that if the Trellis platform is running in a container, the reindexer will also need to run in a container, else it will fail to resolve Trellis's internal hostname. In that event, run `docker-compose run reindexer` instead.
 
 ## Testing
 
-Using `docker-compose`, you can spin up containers for Trellis, ActiveMQ, ElasticSearch, Postgres, and the pipeline::
+Using `docker-compose`, you can spin up containers for MongoDB, ElasticSearch, and
+the pipeline:
 
 ```shell
 $ docker-compose up pipeline # add -d to run in background
+```
+
+You should also run the MongoDB setup to create the collections and load the
+supporting files for resource templates:
+
+```shell
+$ docker-compose run mongo-setup
 ```
 
 To shut it down and clean up, run:
@@ -41,38 +49,17 @@ $ npm run lint
 $ npm test
 ```
 
-To run the integration tests, they must be invoked independent of the unit tests:
-
-```shell
-$ npm run integration
-```
-
-**NOTE**: The `pipeline` `docker-compose` service must be running for the integration tests to pass.
-
 ### Continuous Integration
 
-We are using CircleCI to run continuous integration. CircleCI invokes the integration tests using a container, which works around inter-container networking constraints in the CI environment. If you prefer to run integration tests in a manner that more closely matches what runs in CI, you can do that via:
-
-```shell
-$ docker-compose run integration
-```
-
-### Create a Trellis resource
-
-To create a Trellis container and test integration between the pipeline components, you may do so using a curl incantation like follows:
-
-```shell
-$ curl -i -X POST -H 'Content-Type: application/ld+json' -H 'Link: <http://www.w3.org/ns/ldp#BasicContainer>; rel="type"' -H "Slug: repository" -d '{ "@context": { "dcterms": "http://purl.org/dc/terms/" }, "@id": "", "dcterms:title": "Repository container" }' http://localhost:8080
-```
-
-See [Sinopia Server notes](https://github.com/LD4P/sinopia_server/wiki/Draft-Notes-for-Sinopia-Server-API-Spec) for more Trellis `curl` incantations.
+We are using CircleCI to run continuous integration. 
 
 ## Development
 
-For development purposes, you may wish to spin up all the components other than the pipeline if you'll be iterating:
+For development purposes, you may wish to spin up all the components other than the
+pipeline:
 
 ```shell
-$ docker-compose up -d platform search searchui
+$ docker-compose up -d mongo search searchui
 ```
 
 And then spin up the pipeline using:

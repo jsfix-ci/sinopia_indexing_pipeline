@@ -1,38 +1,5 @@
 version: "3"
 services:
-  broker:
-    image: rmohr/activemq
-    ports:
-      - 61613:61613
-      - 8161:8161
-  platform:
-    image: ld4p/trellis-ext-db:latest
-    environment:
-      TRELLIS_BASE_URL: http://platform:8080
-      TRELLIS_LOGGING_LEVEL: INFO
-      TRELLIS_CONSOLE_LOGGING_THRESHOLD: INFO
-      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-us-west-2_CGd9Wq136}
-      AWS_REGION: ${AWS_REGION:-us-west-2}
-    ports:
-      - 8080:8080
-      - 8081:8081
-    depends_on:
-      - database
-      - broker
-      - migration
-  platformdata:
-    image: ld4p/sinopia_acl:latest
-    environment:
-      INSIDE_CONTAINER: 'true'
-      TRELLIS_BASE_URL: http://platform:8080
-      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-us-west-2_CGd9Wq136}
-      AWS_REGION: ${AWS_REGION:-us-west-2}
-      COGNITO_ADMIN_PASSWORD: "${COGNITO_ADMIN_PASSWORD}" # add to .env file (DO NOT CHECK IN)
-      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}" # add to .env file (DO NOT CHECK IN)
-      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}" # add to .env file (DO NOT CHECK IN)
-    command: dockerize -wait tcp://platform:8080 -timeout 3m bin/migrate
-    depends_on:
-      - platform
   pipeline:
     build:
       context: .
@@ -40,19 +7,25 @@ services:
       INDEX_URL: http://search:9200
       BROKER_HOST: broker
     depends_on:
-      - broker
       - search
-      - platform
-  integration:
-    build:
-      context: .
+      - mongo
+  mongo:
+    image: mongo:4.4
+    ports:
+      - 27017:27017
+      - 28017:28017
     environment:
-      INDEX_URL: http://search:9200
-      BROKER_HOST: broker
-      INSIDE_CONTAINER: 'true'
-    command: dockerize -wait tcp://broker:61613 -wait tcp://search:9200 -wait tcp://platform:8080 -timeout 3m npm run integration
+      MONGO_INITDB_ROOT_USERNAME: sinopia
+      MONGO_INITDB_ROOT_PASSWORD: sekret
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+  mongo-setup:
+    image: ld4p/sinopia_dev_setup:latest
+    # Replace image with build to build from local code. Do not commit docker-compose.yml.
+    # build:
+    #   context: ../sinopia_api
+    #   dockerfile: Dockerfile-setup
     depends_on:
-      - pipeline
+      - mongo
   reindexer:
     build:
       context: .
@@ -64,15 +37,6 @@ services:
     command: bin/reindex
     depends_on:
       - pipeline
-  database:
-    image: postgres:11
-    environment:
-      POSTGRES_USER: sinopia
-      POSTGRES_DB: sinopia
-      POSTGRES_PASSWORD: S1n0p1a
-      PGDATA: /var/lib/postgresql/data/pgdata/mydata
-    ports:
-      - 5432:5432
   search:
     image: ld4p/sinopia_elasticsearch:latest
     entrypoint:
@@ -94,8 +58,3 @@ services:
       - 1358:1358
     depends_on:
       - search
-  migration:
-    image: ld4p/trellis-ext-db:latest
-    command: ["/opt/trellis/bin/trellis-db", "db", "migrate", "/opt/trellis/etc/config.yml"]
-    depends_on:
-      - database
