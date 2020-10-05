@@ -5,8 +5,8 @@
 # Sinopia Indexing Pipeline
 
 This is the repository for the Sinopia Indexing Pipeline. The pipeline is a Node application that
-responds to a MongoDB [Change Streams](https://docs.mongodb.com/manual/changeStreams/) and
-indexes parts of the document into Elasticsearch:
+responds to MongoDB [Change Streams](https://docs.mongodb.com/manual/changeStreams/) and
+indexes parts of the document into ElasticSearch:
 
 * Extracts the JSON-LD representation from the `data` property in the MongoDB document
 * Indexes the JSON-LD, or a derivative thereof, in ElasticSearch.
@@ -48,6 +48,10 @@ Or, to run the linter and unit tests separately:
 $ npm run lint
 $ npm test
 ```
+
+### Continuous Integration
+
+We are using CircleCI to run continuous integration. 
 
 ## Development
 
