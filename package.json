@@ -53,6 +53,6 @@
     "jest": "^24.1.0",
     "jest-mock-console": "^1.0.1",
     "minimist": "^1.2.5",
-    "nodemon": "^2.0.5"
+    "nodemon": "^2.0.6"
   }
 }
