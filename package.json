@@ -27,7 +27,7 @@
   "dependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.12.1",
     "@babel/runtime": "^7.12.5",
-    "@elastic/elasticsearch": "^7.9.1",
+    "@elastic/elasticsearch": "^7.10.0",
     "@rdfjs/parser-jsonld": "^1.2.1",
     "config": "^3.3.2",
     "honeybadger": "^1.4.0",
