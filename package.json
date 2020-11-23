@@ -25,7 +25,7 @@
     "test": "ALLOW_CONFIG_MUTATIONS=true jest --colors --runInBand"
   },
   "dependencies": {
-    "@babel/plugin-proposal-optional-chaining": "^7.12.1",
+    "@babel/plugin-proposal-optional-chaining": "^7.12.7",
     "@babel/runtime": "^7.12.5",
     "@elastic/elasticsearch": "^7.10.0",
     "@rdfjs/parser-jsonld": "^1.2.1",
@@ -39,10 +39,10 @@
     "wait-on": "^3.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.3",
+    "@babel/core": "^7.12.7",
     "@babel/node": "^7.12.6",
     "@babel/plugin-transform-runtime": "^7.12.1",
-    "@babel/preset-env": "^7.12.1",
+    "@babel/preset-env": "^7.12.7",
     "@beyonk/promise-retry": "^0.1.1",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^24.1.0",
