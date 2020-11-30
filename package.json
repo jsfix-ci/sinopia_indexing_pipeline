@@ -29,7 +29,7 @@
     "@babel/runtime": "^7.12.5",
     "@elastic/elasticsearch": "^7.10.0",
     "@rdfjs/parser-jsonld": "^1.2.1",
-    "config": "^3.3.2",
+    "config": "^3.3.3",
     "honeybadger": "^1.4.0",
     "lodash": "^4.17.20",
     "mongodb": "^3.6.3",
@@ -39,7 +39,7 @@
     "wait-on": "^3.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.7",
+    "@babel/core": "^7.12.9",
     "@babel/node": "^7.12.6",
     "@babel/plugin-transform-runtime": "^7.12.1",
     "@babel/preset-env": "^7.12.7",
