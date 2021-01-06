@@ -51,7 +51,7 @@ $ npm test
 
 ### Continuous Integration
 
-We are using CircleCI to run continuous integration. 
+We are using CircleCI to run continuous integration.
 
 ## Development
 
@@ -72,7 +72,7 @@ Note that if you want to view the ElasticSearch index, you can browse to http://
 
 ## Build and push image
 
-The CircleCI build is configured to perform these steps automatically on any successful build on the `master` branch. If you need to manually build and push an image, you can do this:
+The CircleCI build is configured to perform these steps automatically on any successful build on the `main` branch. If you need to manually build and push an image, you can do this:
 
 ```shell
 $ docker build -t ld4p/sinopia_indexing_pipeline .
