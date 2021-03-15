@@ -26,10 +26,10 @@
   },
   "dependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.13.8",
-    "@babel/runtime": "^7.13.9",
+    "@babel/runtime": "^7.13.10",
     "@elastic/elasticsearch": "^7.11.0",
     "@rdfjs/parser-jsonld": "^1.2.1",
-    "config": "^3.3.4",
+    "config": "^3.3.6",
     "honeybadger": "^1.4.0",
     "lodash": "^4.17.21",
     "mongodb": "^3.6.4",
@@ -39,10 +39,10 @@
     "wait-on": "^3.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.13.8",
-    "@babel/node": "^7.13.0",
-    "@babel/plugin-transform-runtime": "^7.13.9",
-    "@babel/preset-env": "^7.13.9",
+    "@babel/core": "^7.13.10",
+    "@babel/node": "^7.13.10",
+    "@babel/plugin-transform-runtime": "^7.13.10",
+    "@babel/preset-env": "^7.13.10",
     "@beyonk/promise-retry": "^0.1.1",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^24.1.0",
