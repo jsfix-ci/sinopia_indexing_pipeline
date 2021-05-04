@@ -1,6 +1,5 @@
 {
   "name": "sinopia_indexing_pipeline",
-  "version": "1.0.14",
   "description": "Sinopia Indexing Pipeline listens for STOMP messages, parses URIs out of messages, retrieves resources from an LDP server, and indexes them into ElasticSearch ",
   "bin": {
     "reindex": "bin/reindex"
