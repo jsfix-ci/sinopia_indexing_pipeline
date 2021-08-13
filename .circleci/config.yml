@@ -94,7 +94,7 @@ jobs:
       - run:
           name: Build & Register Images
           command: |
-            docker build -t ld4p/sinopia_indexing_pipeline:release-stage -t ld4p/sinopia_indexing_pipeline:prod-stage --build-arg HONEYBADGER_API_KEY=$HONEYBADGER_API_KEY .
+            docker build -t ld4p/sinopia_indexing_pipeline:release-stage -t ld4p/sinopia_indexing_pipeline:release-prod --build-arg HONEYBADGER_API_KEY=$HONEYBADGER_API_KEY .
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
             docker push ld4p/sinopia_indexing_pipeline:release-stage
             docker push ld4p/sinopia_indexing_pipeline:release-prod
