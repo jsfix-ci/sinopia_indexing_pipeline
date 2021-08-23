@@ -32,8 +32,9 @@ export default class Indexer {
    * @returns {Promise} resolves to true if successful; null if not
    */
   async index(doc) {
+    let dataset
     try {
-      const dataset = await datasetFromJsonld(doc.data)
+      dataset = await datasetFromJsonld(doc.data)
     } catch (err) {
       this.logger.error(`Could not load dataset for ${doc.uri}: ${err}. ${JSON.stringify(doc)}`)
       return null
