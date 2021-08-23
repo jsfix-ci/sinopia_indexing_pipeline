@@ -29,7 +29,7 @@
     "@elastic/elasticsearch": "7.13.0",
     "@rdfjs/parser-jsonld": "^1.2.1",
     "config": "^3.3.6",
-    "honeybadger": "^1.4.0",
+    "honeybadger": "^1.4.1",
     "lodash": "^4.17.21",
     "mongodb": "^3.6.11",
     "promise-retry": "^2.0.1",
