@@ -32,7 +32,12 @@ export default class Indexer {
    * @returns {Promise} resolves to true if successful; null if not
    */
   async index(doc) {
-    const dataset = await datasetFromJsonld(doc.data)
+    try {
+      const dataset = await datasetFromJsonld(doc.data)
+    } catch (err) {
+      this.logger.error(`Could not load dataset for ${doc.uri}: ${err}. ${JSON.stringify(doc)}`)
+      return null
+    }
     const resourceType = this.resourceTypeFor(dataset, doc.uri)
     if(!resourceType) {
       this.logger.error(`Could not determine resource type for ${doc.uri}: ${JSON.stringify(doc)}`)
