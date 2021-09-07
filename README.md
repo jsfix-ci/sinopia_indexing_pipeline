@@ -1,6 +1,7 @@
 [![CircleCI](https://circleci.com/gh/LD4P/sinopia_indexing_pipeline.svg?style=svg)](https://circleci.com/gh/LD4P/sinopia_indexing_pipeline)
 [![Code Climate](https://codeclimate.com/github/LD4P/sinopia_indexing_pipeline/badges/gpa.svg)](https://codeclimate.com/github/LD4P/sinopia_indexing_pipeline)
 [![Code Climate Test Coverage](https://codeclimate.com/github/LD4P/sinopia_indexing_pipeline/badges/coverage.svg)](https://codeclimate.com/github/LD4P/sinopia_indexing_pipeline/coverage)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/ld4p/sinopia_indexing_pipeline?sort=semver)](https://hub.docker.com/repository/docker/ld4p/sinopia_indexing_pipeline/tags?page=1&ordering=last_updated)
 
 # Sinopia Indexing Pipeline
 
