@@ -1,264 +1,183 @@
-# Javascript Node CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-javascript/ for more details
-#
-
-defaults: &defaults
-  docker:
-    - image: cimg/node:16.8
-  working_directory: ~/sinopia_indexing_pipeline
-
-version: 2
+version: 2.1
+orbs:
+  node: circleci/node@4.7.0
+  docker: circleci/docker@1.7.0
+  aws-cli: circleci/aws-cli@2.0
+  gh: circleci/github-cli@1.0.4
+executors:
+  default:
+    docker:
+      - image: 'cimg/node:16.8'
+references:
+  publish_params: &publish_params
+    docker-password: DOCKER_PASS
+    docker-username: DOCKER_USER
+  filters:
+    branch_only: &branch_only_filter
+      branches:
+        only:
+          - /.*/
+      tags:
+        ignore:
+          - /.*/
+    main_only: &main_only_filter
+      branches:
+        only:
+          - main
+      tags:
+        ignore:
+          - /.*/
+    release_and_beta_only: &release_and_beta_only_filter
+      branches:
+        ignore:
+          - /.*/
+      tags:
+        only:
+          - /v.[0-9\.]+(-beta)?/
+    release_only: &release_only_filter
+      branches:
+        ignore:
+          - /.*/
+      tags:
+        only:
+          - /v.[0-9\.]+/
 jobs:
-  dependencies:
-    <<: *defaults
+  test:
+    executor: default
     steps:
       - checkout
-      - restore_cache:
-          key: dependencies-prod-{{ checksum "package-lock.json" }}
-      - run: npm install --only=production
-      - save_cache:
-          key: dependencies-prod-{{ checksum "package-lock.json" }}
-          paths:
-            - node_modules
-      - restore_cache:
-          key: dependencies-ci-{{ checksum "package-lock.json" }}
-      - run: npm install # including CI/Test dependencies
-      - save_cache:
-          key: dependencies-ci-{{ checksum "package-lock.json" }}
-          paths:
-            - node_modules
-  build:
-    <<: *defaults
-    steps:
-      - checkout
-      - restore_cache:
-          key: dependencies-ci-{{ checksum "package-lock.json" }}
+      - node/install-packages
       - run:
           name: Setup Code Climate test-reporter
           command: |
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
             chmod +x ./cc-test-reporter
-      - run:
-          name: Lint and run unit tests
-          command: |
             ./cc-test-reporter before-build
-            npm run ci
+      - run:
+          name: Run tests
+          command: npm run coverage
+      - run:
+          name: Send coverage report to Code Climate
+          command: |
             ./cc-test-reporter after-build --exit-code $?
-      - setup_remote_docker
-      # - run:
-      #     name: Run integration tests
-      #     command: docker-compose run integration
-  register_latest_image:
-    <<: *defaults
+  deploy-ecs:
+    parameters:
+      role-arn:
+        type: env_var_name
+        default: DEV_ROLE_ARN
+      cluster:
+        type: string
+        default: sinopia-dev
+    executor: aws-cli/default
     steps:
-      - checkout
-      - setup_remote_docker
-      - restore_cache: # gives us back matching node_modules
-          key: dependencies-prod-{{ checksum "package-lock.json" }}
-      - attach_workspace:
-          at: .
+      - aws-cli/setup:
+          aws-access-key-id: CIRCLE_ACCESS_KEY_ID
+          aws-secret-access-key: CIRCLE_SECRET_KEY
+          aws-region: AWS_DEFAULT_REGION
       - run:
-          name: Build & Register Images
-          # NOTE: the env variables holding docker credentials are stored in the CircleCI dashboard
+          name: Deploy to ECS
           command: |
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-            docker build -t ld4p/sinopia_indexing_pipeline:latest --build-arg HONEYBADGER_API_KEY=$HONEYBADGER_API_KEY .
-            docker push ld4p/sinopia_indexing_pipeline:latest
-            docker build -t ld4p/sinopia_elasticsearch:latest -f Dockerfile-es .
-            docker push ld4p/sinopia_elasticsearch:latest
-  register_stage_image:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker
-      - restore_cache: # gives us back matching node_modules
-          key: dependencies-prod-{{ checksum "package-lock.json" }}
-      - attach_workspace:
-          at: .
-      - run:
-          name: Build & Register Images
-          command: |
-            docker build -t ld4p/sinopia_indexing_pipeline:release-stage --build-arg HONEYBADGER_API_KEY=$HONEYBADGER_API_KEY .
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-            docker push ld4p/sinopia_indexing_pipeline:release-stage
-  register_stage_and_prod_image:
-    <<: *defaults
-    steps:
-      - checkout
-      - setup_remote_docker
-      - restore_cache: # gives us back matching node_modules
-          key: dependencies-prod-{{ checksum "package-lock.json" }}
-      - attach_workspace:
-          at: .
-      - run:
-          name: Build & Register Images
-          command: |
-            docker build -t ld4p/sinopia_indexing_pipeline:release-stage -t ld4p/sinopia_indexing_pipeline:release-prod --build-arg HONEYBADGER_API_KEY=$HONEYBADGER_API_KEY .
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-            docker push ld4p/sinopia_indexing_pipeline:release-stage
-            docker push ld4p/sinopia_indexing_pipeline:release-prod
-  update_ecs_dev:
-    working_directory: ~/sinopia_indexing_pipeline
-    docker: # NOT the default
-      - image: circleci/python:3.7-stretch-node-browsers
-    steps:
-      - run: sudo pip install awscli
-      - run:
-          name: Update AWS ECS
-          command: |
-            mkdir ~/.aws
-            echo -e "[circle]\naws_access_key_id=$CIRCLE_ACCESS_KEY_ID\naws_secret_access_key=$CIRCLE_SECRET_KEY\n" > ~/.aws/credentials
             unset AWS_SESSION_TOKEN
-            aws configure set region us-west-2
             aws configure set output json
-            temp_creds=$(aws sts assume-role --role-session-name DevelopersRole --role-arn $DEV_ROLE_ARN --profile circle | jq .Credentials)
+            temp_creds=$(aws sts assume-role --role-session-name DevelopersRole --role-arn ${<< parameters.role-arn >>} --profile default | jq .Credentials)
             export AWS_ACCESS_KEY_ID=$(echo "$temp_creds" | jq .AccessKeyId | xargs)
             export AWS_SECRET_ACCESS_KEY=$(echo "$temp_creds" | jq .SecretAccessKey | xargs)
             export AWS_SESSION_TOKEN=$(echo "$temp_creds" | jq .SessionToken | xargs)
-            aws configure list # Show confirmation of config
-            task_arn=$(aws ecs list-task-definitions --family-prefix sinopia-indexing --region us-west-2 --sort DESC --max-items 1 | jq --raw-output --exit-status '.taskDefinitionArns[]')
-            cluster_arn=$(aws ecs list-clusters --region us-west-2 | jq --raw-output --exit-status '.clusterArns[] | select(contains(":cluster/sinopia-dev"))')
-            # echo -n "task_arn=$task_arn\ncluster_arn=$cluster_arn\n"
-            aws ecs update-service --service sinopia-indexing --region us-west-2 --cluster $cluster_arn --task-definition $task_arn --force-new-deployment
-  update_ecs_stage:
-      working_directory: ~/sinopia_indexing_pipeline
-      docker: # NOT the default
-        - image: circleci/python:3.7-stretch-node-browsers
-      steps:
-        - run: sudo pip install awscli
-        - run:
-            name: Update AWS ECS
-            command: |
-              mkdir ~/.aws
-              echo -e "[circle]\naws_access_key_id=$CIRCLE_ACCESS_KEY_ID\naws_secret_access_key=$CIRCLE_SECRET_KEY\n" > ~/.aws/credentials
-              unset AWS_SESSION_TOKEN
-              aws configure set region us-west-2
-              aws configure set output json
-              temp_creds=$(aws sts assume-role --role-session-name DevelopersRole --role-arn $STAGE_ROLE_ARN --profile circle | jq .Credentials)
-              export AWS_ACCESS_KEY_ID=$(echo "$temp_creds" | jq .AccessKeyId | xargs)
-              export AWS_SECRET_ACCESS_KEY=$(echo "$temp_creds" | jq .SecretAccessKey | xargs)
-              export AWS_SESSION_TOKEN=$(echo "$temp_creds" | jq .SessionToken | xargs)
-              aws configure list # Show confirmation of config
-              task_arn=$(aws ecs list-task-definitions --family-prefix sinopia-indexing --region us-west-2 --sort DESC --max-items 1 | jq --raw-output --exit-status '.taskDefinitionArns[]')
-              cluster_arn=$(aws ecs list-clusters --region us-west-2 | jq --raw-output --exit-status '.clusterArns[] | select(contains(":cluster/sinopia-staging"))')
-              aws ecs update-service --service sinopia-indexing --region us-west-2 --cluster $cluster_arn --task-definition $task_arn --force-new-deployment
-  update_ecs_stage_and_prod:
-    working_directory: ~/sinopia_indexing_pipeline
-    docker: # NOT the default
-      - image: circleci/python:3.7-stretch-node-browsers
+            task_arn=$(aws ecs list-task-definitions --family-prefix sinopia-indexing --sort DESC --max-items 1 | jq -r --exit-status '.taskDefinitionArns[]')
+            cluster_arn=$(aws ecs list-clusters | jq --raw-output --exit-status '.clusterArns[] | select(contains(":cluster/<< parameters.cluster >>"))')
+            aws ecs update-service --service sinopia-indexing --cluster $cluster_arn --task-definition $task_arn --force-new-deployment
+  dependency-update:
+    executor: default
     steps:
-      - run: sudo pip install awscli
+      - gh/setup
+      - gh/clone
       - run:
-          name: Update AWS ECS
+          name: Update dependencies
           command: |
-            mkdir ~/.aws
-            echo -e "[circle]\naws_access_key_id=$CIRCLE_ACCESS_KEY_ID\naws_secret_access_key=$CIRCLE_SECRET_KEY\n" > ~/.aws/credentials
-            unset AWS_SESSION_TOKEN
-            aws configure set region us-west-2
-            aws configure set output json
-            # Stage
-            temp_creds=$(aws sts assume-role --role-session-name DevelopersRole --role-arn $STAGE_ROLE_ARN --profile circle | jq .Credentials)
-            export AWS_ACCESS_KEY_ID=$(echo "$temp_creds" | jq .AccessKeyId | xargs)
-            export AWS_SECRET_ACCESS_KEY=$(echo "$temp_creds" | jq .SecretAccessKey | xargs)
-            export AWS_SESSION_TOKEN=$(echo "$temp_creds" | jq .SessionToken | xargs)
-            aws configure list # Show confirmation of config
-            task_arn=$(aws ecs list-task-definitions --family-prefix sinopia-indexing --region us-west-2 --sort DESC --max-items 1 | jq --raw-output --exit-status '.taskDefinitionArns[]')
-            cluster_arn=$(aws ecs list-clusters --region us-west-2 | jq --raw-output --exit-status '.clusterArns[] | select(contains(":cluster/sinopia-staging"))')
-            aws ecs update-service --service sinopia-indexing --region us-west-2 --cluster $cluster_arn --task-definition $task_arn --force-new-deployment
-            # Prod
-            temp_creds=$(aws sts assume-role --role-session-name DevelopersRole --role-arn $PROD_ROLE_ARN --profile circle | jq .Credentials)
-            export AWS_ACCESS_KEY_ID=$(echo "$temp_creds" | jq .AccessKeyId | xargs)
-            export AWS_SECRET_ACCESS_KEY=$(echo "$temp_creds" | jq .SecretAccessKey | xargs)
-            export AWS_SESSION_TOKEN=$(echo "$temp_creds" | jq .SessionToken | xargs)
-            aws configure list # Show confirmation of config
-            task_arn=$(aws ecs list-task-definitions --family-prefix sinopia-indexing --region us-west-2 --sort DESC --max-items 1 | jq --raw-output --exit-status '.taskDefinitionArns[]')
-            cluster_arn=$(aws ecs list-clusters --region us-west-2 | jq --raw-output --exit-status '.clusterArns[] | select(contains(":cluster/sinopia-production"))')
-            aws ecs update-service --service sinopia-indexing --region us-west-2 --cluster $cluster_arn --task-definition $task_arn --force-new-deployment
+            git config user.name "dlss-infra-bot"
+            git config user.email "dlss-infrastructure-team-owner@lists.stanford"
+            git checkout -b update-dependencies
+            repo_url=$(echo $CIRCLE_REPOSITORY_URL | sed -e "s/git@github\.com:/https:\/\/github.com\//" -e "s/\.git//")
+            git remote set-url origin $repo_url
+            git remote show origin
+            npm update
+            npm audit fix || echo "Outstanding fixes"
+            git add package-lock.json package.json && git commit -m "Update NPM dependencies"
+            if [ $? -eq 0 ]; then
+              git push origin update-dependencies && gh pr create --title "Update dependencies" --body ""
+            fi
 workflows:
-  version: 2
   build:
     jobs:
-      - dependencies:
+      - test:
           filters:
-            branches:
-              only:
-                - /.*/
-            tags:
-              only:
-                - /v.*/
-      - build:
-          requires:
-            - dependencies
+            <<: *branch_only_filter
+      - node/run:
+          name: lint
+          npm-run: eslint
           filters:
-            branches:
-              only:
-                - /.*/
-            tags:
-              only:
-                - /v.*/
-      - register_latest_image:
+            <<: *branch_only_filter
+      - docker/publish:
+          <<: *publish_params
+          name: publish-dev
+          context: ld4p
+          image: ld4p/sinopia_indexing_pipeline
+          tag: latest
           requires:
-            - build
+            - test
+            - lint
+          filters:
+            <<: *main_only_filter
+      - docker/publish:
+          <<: *publish_params
+          name: publish-stage
+          context: ld4p
+          image: ld4p/sinopia_indexing_pipeline
+          tag: release-stage
+          filters:
+            <<: *release_and_beta_only_filter
+      - docker/publish:
+          <<: *publish_params
+          name: publish-prod
+          context: ld4p
+          image: ld4p/sinopia_indexing_pipeline
+          tag: release-prod
+          filters:
+            <<: *release_only_filter
+      - deploy-ecs:
+          name: deploy-ecs-dev
+          context: ld4p
+          requires:
+            - publish-dev
+          filters:
+            <<: *main_only_filter
+      - deploy-ecs:
+          name: deploy-ecs-stage
+          context: ld4p
+          role-arn: STAGE_ROLE_ARN
+          cluster: sinopia-staging
+          requires:
+            - publish-stage
+          filters:
+            <<: *release_and_beta_only_filter
+      - deploy-ecs:
+          name: deploy-ecs-prod
+          context: ld4p
+          role-arn: PROD_ROLE_ARN
+          cluster: sinopia-production
+          requires:
+            - publish-prod
+          filters:
+            <<: *release_only_filter
+  dependency-update:
+    triggers:
+      - schedule:
+          # Mondays at 1am
+          cron: "0 1 * * 1"
           filters:
             branches:
               only:
                 - main
-            tags:
-              ignore:
-                - /v.*/
-      - register_stage_image:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore:
-                - /.*/
-            tags:
-              only:
-                - /v.[0-9\.]+-beta/
-          context: ld4p
-      - register_stage_and_prod_image:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore:
-                - /.*/
-            tags:
-              only:
-                - /v.[0-9\.]+/
-          context: ld4p
-      - update_ecs_dev:
-          requires:
-            - register_latest_image
-          filters:
-            branches:
-              only:
-                - main
-            tags:
-              ignore:
-                - /v.*/
-          context: ld4p
-      - update_ecs_stage:
-          requires:
-            - register_stage_image
-          filters:
-            branches:
-              ignore:
-                - /.*/
-            tags:
-              only:
-                - /v.[0-9\.]+-beta/
-          context: ld4p
-      - update_ecs_stage_and_prod:
-          requires:
-            - register_stage_and_prod_image
-          filters:
-            branches:
-              ignore:
-                - /.*/
-            tags:
-              only:
-                - /v.[0-9\.]+/
+    jobs:
+      - dependency-update:
           context: ld4p

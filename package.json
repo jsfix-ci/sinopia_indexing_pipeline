@@ -14,7 +14,6 @@
   ],
   "repository": "github:LD4P/sinopia_indexing_pipeline",
   "scripts": {
-    "ci": "npm run eslint && npm run coverage",
     "coverage": "ALLOW_CONFIG_MUTATIONS=true jest --colors --coverage",
     "dev-start": "nodemon --exec babel-node runner.js",
     "integration": "ALLOW_CONFIG_MUTATIONS=true jest --colors --testRegex=\\.integration\\.js$",
