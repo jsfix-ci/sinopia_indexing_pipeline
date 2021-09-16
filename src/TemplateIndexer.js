@@ -21,13 +21,15 @@ export default class {
     const resourceId = this.valueFor('http://sinopia.io/vocabulary/hasResourceId')
     // Don't index base templates (i.e., templates for templates).
     if(resourceId.startsWith('sinopia:template:')) return null
-    this.indexObject.id = resourceId
-    this.indexObject.uri = this.doc.uri
-    this.indexObject.author = this.valueFor('http://sinopia.io/vocabulary/hasAuthor')
-    this.indexObject.date = this.indexDate()
-    this.indexObject.remark = this.valueFor('http://sinopia.io/vocabulary/hasRemark')
-    this.indexObject.resourceLabel = this.valueFor('http://www.w3.org/2000/01/rdf-schema#label')
-    this.indexObject.resourceURI = this.valueFor('http://sinopia.io/vocabulary/hasClass')
+    this.indexObject['id'] = resourceId
+    this.indexObject['uri'] = this.doc.uri
+    this.indexObject['author'] = this.valueFor('http://sinopia.io/vocabulary/hasAuthor')
+    this.indexObject['date'] = this.indexDate()
+    this.indexObject['remark'] = this.valueFor('http://sinopia.io/vocabulary/hasRemark')
+    this.indexObject['resourceLabel'] = this.valueFor('http://www.w3.org/2000/01/rdf-schema#label')
+    this.indexObject['resourceURI'] = this.valueFor('http://sinopia.io/vocabulary/hasClass')
+    this.indexObject['group'] = this.doc.group
+    this.indexObject['editGroups'] = this.doc.editGroups
 
     return this.indexObject
   }
@@ -88,6 +90,16 @@ export default class {
           index: true,
           normalizer: 'lowercase_normalizer'
         },
+        group: {
+          type: 'keyword',
+          store: true,
+          index: true
+        },
+        editGroups: {
+          type: 'keyword',
+          store: true,
+          index: true
+        }
       }
     }
   }

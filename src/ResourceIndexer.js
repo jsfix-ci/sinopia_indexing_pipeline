@@ -29,6 +29,7 @@ export default class {
     this.indexObject['modified'] = this.doc.timestamp
     this.buildRDFTypes()
     this.indexObject['group'] = this.doc.group
+    this.indexObject['editGroups'] = this.doc.editGroups
     return this.indexObject
   }
 
@@ -124,6 +125,11 @@ export default class {
           index: true
         },
         group: {
+          type: 'keyword',
+          store: true,
+          index: true
+        },
+        editGroups: {
           type: 'keyword',
           store: true,
           index: true

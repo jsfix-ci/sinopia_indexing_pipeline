@@ -1,13 +1,14 @@
 import { datasetFromJsonld } from 'utilities'
 import TemplateIndexer from 'TemplateIndexer'
 
-describe('Indexer', () => {
+describe('TemplateIndexer', () => {
   describe('Indexing a base template', () => {
     const doc = {
       'id': 'sinopia:template:property:literal',
       'uri': 'https://api.development.sinopia.io/resource/sinopia:template:property:literal',
       'user': 'justinlittman',
       'group': 'ld4p',
+      'editGroups': ['stanford'],
       'timestamp': '2020-08-27T01:08:54.992Z',
       'templateId': 'sinopia:template:resource',
       'data': [
@@ -126,6 +127,7 @@ describe('Indexer', () => {
         }
       ],
       'group': 'ld4p',
+      'editGroups': ['stanford'],
       'types': [
         'http://sinopia.io/vocabulary/ResourceTemplate'
       ],
@@ -145,7 +147,9 @@ describe('Indexer', () => {
         'remark': undefined, 
         'resourceLabel': 'Note', 
         'resourceURI': 'http://id.loc.gov/ontologies/bibframe/Note', 
-        'uri': 'https://api.development.sinopia.io/resource/ld4p:RT:bf2:Identifiers:Note'
+        'uri': 'https://api.development.sinopia.io/resource/ld4p:RT:bf2:Identifiers:Note',
+        'group': 'ld4p',
+        'editGroups': ['stanford']
       })
     })
   })
@@ -221,6 +225,7 @@ describe('Indexer', () => {
         }
       ],
       'group': 'ld4p',
+      'editGroups': ['stanford'],
       'types': [
         'http://sinopia.io/vocabulary/ResourceTemplate'
       ],
@@ -240,7 +245,9 @@ describe('Indexer', () => {
         'remark': undefined, 
         'resourceLabel': 'Note', 
         'resourceURI': 'http://id.loc.gov/ontologies/bibframe/Note', 
-        'uri': 'https://api.development.sinopia.io/resource/ld4p:RT:bf2:Identifiers:Note'
+        'uri': 'https://api.development.sinopia.io/resource/ld4p:RT:bf2:Identifiers:Note',
+        'group': 'ld4p',
+        'editGroups': ['stanford']
       })
     })
   })
@@ -321,6 +328,7 @@ describe('Indexer', () => {
         }
       ],
       'group': 'ld4p',
+      'editGroups': ['stanford'],
       'types': [
         'http://sinopia.io/vocabulary/ResourceTemplate'
       ],
@@ -340,7 +348,9 @@ describe('Indexer', () => {
         'remark': undefined, 
         'resourceLabel': 'Note', 
         'resourceURI': 'http://id.loc.gov/ontologies/bibframe/Note', 
-        'uri': 'https://api.development.sinopia.io/resource/ld4p:RT:bf2:Identifiers:Note'
+        'uri': 'https://api.development.sinopia.io/resource/ld4p:RT:bf2:Identifiers:Note',
+        'group': 'ld4p',
+        'editGroups': ['stanford']
       })
     })
   })
