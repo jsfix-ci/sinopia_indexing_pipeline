@@ -1,4 +1,4 @@
-import rdf from 'rdf-ext'
+import rdf from "rdf-ext"
 
 export default class {
   /**
@@ -18,89 +18,101 @@ export default class {
    * @returns {Object} an object containing configured field values if any found
    */
   index() {
-    const resourceId = this.valueFor('http://sinopia.io/vocabulary/hasResourceId')
+    const resourceId = this.valueFor(
+      "http://sinopia.io/vocabulary/hasResourceId"
+    )
     // Don't index base templates (i.e., templates for templates).
-    if(resourceId.startsWith('sinopia:template:')) return null
-    this.indexObject['id'] = resourceId
-    this.indexObject['uri'] = this.doc.uri
-    this.indexObject['author'] = this.valueFor('http://sinopia.io/vocabulary/hasAuthor')
-    this.indexObject['date'] = this.indexDate()
-    this.indexObject['remark'] = this.valueFor('http://sinopia.io/vocabulary/hasRemark')
-    this.indexObject['resourceLabel'] = this.valueFor('http://www.w3.org/2000/01/rdf-schema#label')
-    this.indexObject['resourceURI'] = this.valueFor('http://sinopia.io/vocabulary/hasClass')
-    this.indexObject['group'] = this.doc.group
-    this.indexObject['editGroups'] = this.doc.editGroups
+    if (resourceId.startsWith("sinopia:template:")) return null
+    this.indexObject["id"] = resourceId
+    this.indexObject["uri"] = this.doc.uri
+    this.indexObject["author"] = this.valueFor(
+      "http://sinopia.io/vocabulary/hasAuthor"
+    )
+    this.indexObject["date"] = this.indexDate()
+    this.indexObject["remark"] = this.valueFor(
+      "http://sinopia.io/vocabulary/hasRemark"
+    )
+    this.indexObject["resourceLabel"] = this.valueFor(
+      "http://www.w3.org/2000/01/rdf-schema#label"
+    )
+    this.indexObject["resourceURI"] = this.valueFor(
+      "http://sinopia.io/vocabulary/hasClass"
+    )
+    this.indexObject["group"] = this.doc.group
+    this.indexObject["editGroups"] = this.doc.editGroups
 
     return this.indexObject
   }
 
   valueFor(predicate) {
-    const quads = this.dataset.match(rdf.namedNode(this.doc.uri), rdf.namedNode(predicate)).toArray()
-    if(quads.length === 0) return undefined
+    const quads = this.dataset
+      .match(rdf.namedNode(this.doc.uri), rdf.namedNode(predicate))
+      .toArray()
+    if (quads.length === 0) return undefined
     return quads[0].object.value
   }
 
   indexDate() {
-    const date = this.valueFor('http://sinopia.io/vocabulary/hasDate')
-    if(/\d{4}-\d{2}-\d{2}/.test(date)) return date
-    return undefined    
+    const date = this.valueFor("http://sinopia.io/vocabulary/hasDate")
+    if (/\d{4}-\d{2}-\d{2}/.test(date)) return date
+    return undefined
   }
 
   static get indexMapping() {
     return {
       properties: {
         id: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
           index: true,
-          normalizer: 'lowercase_normalizer'
+          normalizer: "lowercase_normalizer",
         },
         uri: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
           index: true,
-          normalizer: 'lowercase_normalizer'
+          normalizer: "lowercase_normalizer",
         },
         author: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
           index: true,
-          normalizer: 'lowercase_normalizer'
+          normalizer: "lowercase_normalizer",
         },
         date: {
-          type: 'date',
+          type: "date",
           store: true,
-          index: false
+          index: false,
         },
         remark: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
           index: true,
-          normalizer: 'lowercase_normalizer'
+          normalizer: "lowercase_normalizer",
         },
         resourceLabel: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
           index: true,
-          normalizer: 'lowercase_normalizer'
+          normalizer: "lowercase_normalizer",
         },
         resourceURI: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
           index: true,
-          normalizer: 'lowercase_normalizer'
+          normalizer: "lowercase_normalizer",
         },
         group: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
-          index: true
+          index: true,
         },
         editGroups: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
-          index: true
-        }
-      }
+          index: true,
+        },
+      },
     }
   }
 }

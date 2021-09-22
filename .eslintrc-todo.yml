@@ -1,6 +1,5 @@
 overrides:
-  -
-    rules:
+  - rules:
       no-extra-boolean-cast: off
     files:
       - config/default.js

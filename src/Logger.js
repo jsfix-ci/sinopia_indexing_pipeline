@@ -1,8 +1,8 @@
-import config from 'config'
-import honeybadger from 'honeybadger'
+import config from "config"
+import honeybadger from "honeybadger"
 
 const Honeybadger = honeybadger.configure({
-  apiKey: process.env.HONEYBADGER_API_KEY
+  apiKey: process.env.HONEYBADGER_API_KEY,
 })
 
 export default class Logger {
@@ -11,8 +11,7 @@ export default class Logger {
    * @param {string} message - The message to be logged
    */
   debug(message) {
-    if (config.get('debug'))
-      console.debug(message)
+    if (config.get("debug")) console.debug(message)
   }
 
   /**
@@ -27,8 +26,8 @@ export default class Logger {
       context: {
         message: message,
         config: config,
-        env: process.env
-      }
+        env: process.env,
+      },
     })
   }
 }

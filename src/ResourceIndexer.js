@@ -1,4 +1,4 @@
-import rdf from 'rdf-ext'
+import rdf from "rdf-ext"
 
 export default class {
   /**
@@ -19,62 +19,73 @@ export default class {
    * @returns {Object} an object containing configured field values if any found
    */
   index() {
-    this.indexObject['uri'] = this.doc.uri
+    this.indexObject["uri"] = this.doc.uri
     this.buildTitles()
     this.buildSubtitles()
     this.buildLabel()
     this.buildAllText()
     // TODO: created
     // this.buildActivityStreamField('created', ['Create'])
-    this.indexObject['modified'] = this.doc.timestamp
+    this.indexObject["modified"] = this.doc.timestamp
     this.buildRDFTypes()
-    this.indexObject['group'] = this.doc.group
-    this.indexObject['editGroups'] = this.doc.editGroups
+    this.indexObject["group"] = this.doc.group
+    this.indexObject["editGroups"] = this.doc.editGroups
     return this.indexObject
   }
 
   buildTitles() {
     const titles = this.valuesFor([
-      'http://id.loc.gov/ontologies/bibframe/mainTitle',
-      'http://rdaregistry.info/Elements/w/P10223',
-      'http://rdaregistry.info/Elements/w/P20315',
-      'http://rdaregistry.info/Elements/w/P40085',
-      'http://rdaregistry.info/Elements/w/P30156',
+      "http://id.loc.gov/ontologies/bibframe/mainTitle",
+      "http://rdaregistry.info/Elements/w/P10223",
+      "http://rdaregistry.info/Elements/w/P20315",
+      "http://rdaregistry.info/Elements/w/P40085",
+      "http://rdaregistry.info/Elements/w/P30156",
     ])
-    if (titles.length > 0) this.indexObject['title'] = titles
+    if (titles.length > 0) this.indexObject["title"] = titles
   }
 
   buildSubtitles() {
     const subtitles = this.valuesFor([
-      'http://id.loc.gov/ontologies/bibframe/subtitle'
+      "http://id.loc.gov/ontologies/bibframe/subtitle",
     ])
-    if (subtitles.length > 0) this.indexObject['subtitle'] = subtitles
+    if (subtitles.length > 0) this.indexObject["subtitle"] = subtitles
   }
 
   valuesFor(predicates) {
-    const quadArrays = predicates.map((predicate) => this.dataset.match(null, rdf.namedNode(predicate)).toArray())
+    const quadArrays = predicates.map((predicate) =>
+      this.dataset.match(null, rdf.namedNode(predicate)).toArray()
+    )
     return quadArrays.flat().map((quad) => quad.object.value)
   }
 
   buildAllText() {
-    this.indexObject['text'] = this.dataset.toArray()
-      .filter((quad) => quad.object.termType === 'Literal')
+    this.indexObject["text"] = this.dataset
+      .toArray()
+      .filter((quad) => quad.object.termType === "Literal")
       .map((quad) => quad.object.value)
   }
 
   buildLabel() {
     const labelValues = []
-    const fieldNames = ['title', 'subtitle']
+    const fieldNames = ["title", "subtitle"]
     fieldNames.forEach((fieldName) => {
-      if (this.indexObject[fieldName] && this.indexObject[fieldName].length > 0) {
+      if (
+        this.indexObject[fieldName] &&
+        this.indexObject[fieldName].length > 0
+      ) {
         labelValues.push(this.indexObject[fieldName])
       }
     })
-    this.indexObject['label'] = labelValues.length > 0 ? labelValues.join(': ') : this.doc.uri
+    this.indexObject["label"] =
+      labelValues.length > 0 ? labelValues.join(": ") : this.doc.uri
   }
 
   buildRDFTypes() {
-    this.indexObject['type'] = this.dataset.match(rdf.namedNode(this.doc.uri), rdf.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'))
+    this.indexObject["type"] = this.dataset
+      .match(
+        rdf.namedNode(this.doc.uri),
+        rdf.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+      )
       .toArray()
       .map((quad) => quad.object.value)
   }
@@ -83,58 +94,58 @@ export default class {
     return {
       properties: {
         title: {
-          type: 'text',
+          type: "text",
           store: true,
           index: true,
-          fielddata: true
+          fielddata: true,
         },
         subtitle: {
-          type: 'text',
+          type: "text",
           store: true,
           index: true,
-          fielddata: true
+          fielddata: true,
         },
-        type:  {
-          type: 'keyword',
+        type: {
+          type: "keyword",
           store: true,
-          index: true
+          index: true,
         },
         uri: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
-          index: true
+          index: true,
         },
         label: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
-          index: false
+          index: false,
         },
         created: {
-          type: 'date',
+          type: "date",
           store: true,
-          index: true
+          index: true,
         },
         modified: {
-          type: 'date',
+          type: "date",
           store: true,
-          index: true
+          index: true,
         },
         text: {
-          type: 'text',
+          type: "text",
           store: false,
-          index: true
+          index: true,
         },
         group: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
-          index: true
+          index: true,
         },
         editGroups: {
-          type: 'keyword',
+          type: "keyword",
           store: true,
-          index: true
-        }
-      }
+          index: true,
+        },
+      },
     }
   }
 }

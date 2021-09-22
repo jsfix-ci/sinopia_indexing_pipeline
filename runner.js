@@ -1,7 +1,7 @@
-import Pipeline from './src/Pipeline'
-import ElasticSearchWaiter from './src/ElasticSearchWaiter'
-import MongoWaiter from './src/MongoWaiter'
-import Indexer from './src/Indexer'
+import Pipeline from "./src/Pipeline"
+import ElasticSearchWaiter from "./src/ElasticSearchWaiter"
+import MongoWaiter from "./src/MongoWaiter"
+import Indexer from "./src/Indexer"
 
 const runner = async () => {
   await new ElasticSearchWaiter().wait()
