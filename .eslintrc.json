@@ -12,9 +12,9 @@
   },
   "plugins": ["jest"],
   "rules": {
-    "indent": ["error", 2, { "SwitchCase": 1 }],
+    "indent": "off", // off for prettier
     "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "single"],
+    "quotes": "off", // off for prettier
     "semi": ["error", "never"],
     "no-console": "off",
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
