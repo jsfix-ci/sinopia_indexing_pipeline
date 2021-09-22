@@ -1,11 +1,11 @@
-import config from 'config'
-import Logger from './Logger'
-import connect from './mongo'
+import config from "config"
+import Logger from "./Logger"
+import connect from "./mongo"
 
 export default class Listener {
   constructor() {
-    this.dbName = config.get('dbName')
-    this.collectionName = config.get('collectionName')
+    this.dbName = config.get("dbName")
+    this.collectionName = config.get("collectionName")
     this.logger = new Logger()
   }
 
@@ -27,8 +27,8 @@ export default class Listener {
         // AWS requires setting readPreference for collection.
         const changeStream = client
           .db(this.dbName)
-          .collection(this.collectionName, { readPreference: 'primary' })
-          .watch({ fullDocument: 'updateLookup' })
+          .collection(this.collectionName, { readPreference: "primary" })
+          .watch({ fullDocument: "updateLookup" })
 
         while (await changeStream.hasNext()) {
           onNewMessage(await changeStream.next())

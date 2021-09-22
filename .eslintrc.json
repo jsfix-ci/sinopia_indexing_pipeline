@@ -10,31 +10,13 @@
     "ecmaVersion": 2019,
     "sourceType": "module"
   },
-  "plugins": [
-    "jest"
-  ],
+  "plugins": ["jest"],
   "rules": {
-    "indent": [
-      "error",
-      2,
-      { "SwitchCase": 1 }
-    ],
-    "linebreak-style": [
-      "error",
-      "unix"
-    ],
-    "quotes": [
-      "error",
-      "single"
-    ],
-    "semi": [
-      "error",
-      "never"
-    ],
+    "indent": "off", // off for prettier
+    "linebreak-style": ["error", "unix"],
+    "quotes": "off", // off for prettier
+    "semi": ["error", "never"],
     "no-console": "off",
-    "no-unused-vars": [
-      "error",
-      { "argsIgnorePattern": "^_" }
-    ]
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
   }
 }

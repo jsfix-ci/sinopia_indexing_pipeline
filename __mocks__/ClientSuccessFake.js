@@ -1,5 +1,5 @@
 export default class ClientSuccessFake {
-  constructor(exists=false) {
+  constructor(exists = false) {
     this.indices = {
       delete: () => {
         return new Promise((resolve, _reject) => {
@@ -20,19 +20,19 @@ export default class ClientSuccessFake {
         return new Promise((resolve, _reject) => {
           return resolve()
         })
-      }
+      },
     }
   }
 
   index() {
     return new Promise((resolve, _reject) => {
-      return resolve({ result: 'created' })
+      return resolve({ result: "created" })
     })
   }
 
   delete() {
     return new Promise((resolve, _reject) => {
-      return resolve({ result: 'deleted' })
+      return resolve({ result: "deleted" })
     })
   }
 }

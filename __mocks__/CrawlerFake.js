@@ -4,7 +4,7 @@ export default class CrawlerFake {
   }
 
   crawl(onResource) {
-    this.resources.forEach(resource => {
+    this.resources.forEach((resource) => {
       onResource(resource.body, resource.uri, resource.types)
     })
   }

@@ -1,7 +1,7 @@
-import Listener from './Listener'
-import Logger from './Logger'
-import Indexer from './Indexer'
-import { replaceInKeys } from './utilities'
+import Listener from "./Listener"
+import Logger from "./Logger"
+import Indexer from "./Indexer"
+import { replaceInKeys } from "./utilities"
 
 export default class Pipeline {
   constructor() {
@@ -17,10 +17,11 @@ export default class Pipeline {
     await this.listener.listen(async (message) => {
       this.logger.debug(`received message: ${JSON.stringify(message)}`)
 
-      if(!['insert', 'replace', 'delete'].includes(message.operationType)) return
+      if (!["insert", "replace", "delete"].includes(message.operationType))
+        return
 
       // Need to map ! back to . in keys.
-      const doc = replaceInKeys(message.fullDocument, '!', '.')
+      const doc = replaceInKeys(message.fullDocument, "!", ".")
 
       // Invoke the method for the operation type
       this[message.operationType](doc)
