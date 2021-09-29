@@ -66,7 +66,14 @@ export default class {
   }
 
   buildLabel() {
-    const labelValues = []
+    const labelValues = this.valuesFor([
+      "http://www.w3.org/2000/01/rdf-schema#label",
+    ])
+    if (labelValues.length > 0) {
+      this.indexObject["label"] = labelValues[0]
+      return
+    }
+
     const fieldNames = ["title", "subtitle"]
     fieldNames.forEach((fieldName) => {
       if (
