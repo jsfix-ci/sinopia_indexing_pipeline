@@ -30,7 +30,6 @@ services:
     build:
       context: .
     environment:
-      TRELLIS_BASE_URL: http://platform:8080
       INDEX_URL: http://search:9200
       BROKER_HOST: broker
       INSIDE_CONTAINER: 'true'
