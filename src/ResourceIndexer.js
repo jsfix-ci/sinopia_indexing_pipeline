@@ -58,6 +58,16 @@ export default class {
     return quadArrays.flat().map((quad) => quad.object.value)
   }
 
+  labelValues() {
+    return this.dataset
+      .match(
+        rdf.namedNode(this.doc.uri),
+        rdf.namedNode("http://www.w3.org/2000/01/rdf-schema#label")
+      )
+      .toArray()
+      .map((quad) => quad.object.value)
+  }
+
   buildAllText() {
     this.indexObject["text"] = this.dataset
       .toArray()
@@ -66,9 +76,8 @@ export default class {
   }
 
   buildLabel() {
-    const labelValues = this.valuesFor([
-      "http://www.w3.org/2000/01/rdf-schema#label",
-    ])
+    const labelValues = this.labelValues()
+
     if (labelValues.length > 0) {
       this.indexObject["label"] = labelValues[0]
       return
