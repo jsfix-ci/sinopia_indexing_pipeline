@@ -38,7 +38,7 @@ describe("ResourceIndexer", () => {
 
     it("indexes", async () => {
       const dataset = await datasetFromJsonld(doc.data)
-      expect(new ResourceIndexer(doc, dataset).index()).toEqual({
+      expect(await new ResourceIndexer(doc, dataset).index()).toEqual({
         uri: "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
         label: "Brain Matter",
         text: ["resourceTemplate:bf2:Title:Note", "Brain Matter"],
@@ -94,7 +94,7 @@ describe("ResourceIndexer", () => {
 
     it("indexes", async () => {
       const dataset = await datasetFromJsonld(doc.data)
-      expect(new ResourceIndexer(doc, dataset).index()).toEqual({
+      expect(await new ResourceIndexer(doc, dataset).index()).toEqual({
         uri: "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
         label:
           "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
@@ -137,7 +137,7 @@ describe("ResourceIndexer", () => {
 
     it("indexes", async () => {
       const dataset = await datasetFromJsonld(doc.data)
-      expect(new ResourceIndexer(doc, dataset).index()).toEqual({
+      expect(await new ResourceIndexer(doc, dataset).index()).toEqual({
         uri: "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
         label:
           "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
