@@ -1,4 +1,5 @@
 import rdf from "rdf-ext"
+import GroupCache from "./GroupCache"
 
 export default class {
   /**
@@ -11,13 +12,14 @@ export default class {
     this.indexObject = {}
     this.doc = doc
     this.dataset = dataset
+    this.groupCache = new GroupCache()
   }
 
   /**
    * Builds up an index entry out of a JSON body, given index field mappings from config
    * @returns {Object} an object containing configured field values if any found
    */
-  index() {
+  async index() {
     const resourceId = this.valueFor(
       "http://sinopia.io/vocabulary/hasResourceId"
     )
@@ -40,6 +42,9 @@ export default class {
     )
     this.indexObject["group"] = this.doc.group
     this.indexObject["editGroups"] = this.doc.editGroups
+    this.indexObject["groupLabel"] = await this.groupCache.getLabel(
+      this.doc.group
+    )
 
     return this.indexObject
   }
@@ -111,6 +116,12 @@ export default class {
           type: "keyword",
           store: true,
           index: true,
+        },
+        groupLabel: {
+          type: "keyword",
+          store: true,
+          index: true,
+          normalizer: "lowercase_normalizer",
         },
       },
     }

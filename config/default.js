@@ -13,4 +13,5 @@ module.exports = {
   isAws: process.env.MONGODB_IS_AWS === "true",
   collectionName: process.env.MONGODB_COLLECTION || "resources",
   uriPrefix: process.env.URI_PREFIX || "http://localhost:3000/repository",
+  sinopiaApi: process.env.API_BASE_URL || "http://localhost:3000",
 }

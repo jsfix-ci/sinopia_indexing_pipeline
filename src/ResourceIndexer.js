@@ -18,7 +18,7 @@ export default class {
    * Builds up an index entry out of a JSON body, given index field mappings from config
    * @returns {Object} an object containing configured field values if any found
    */
-  index() {
+  async index() {
     this.indexObject["uri"] = this.doc.uri
     this.buildTitles()
     this.buildSubtitles()

@@ -59,7 +59,8 @@ export default class Indexer {
       return true
     }
 
-    const body = new indexer(doc, dataset).index()
+    const indexInstance = new indexer(doc, dataset)
+    const body = await indexInstance.index()
     if (!body) {
       this.logger.debug(`skipping indexing ${doc.uri} (${resourceType})`)
       return true

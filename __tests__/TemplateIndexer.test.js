@@ -1,13 +1,31 @@
 import { datasetFromJsonld } from "utilities"
 import TemplateIndexer from "TemplateIndexer"
+import fetch from "node-fetch"
+
+jest.mock("node-fetch", () => jest.fn())
 
 describe("TemplateIndexer", () => {
+  beforeAll(() => {
+    const responseBody = {
+      data: [{ id: "ld4p", label: "Linked Data 4 Production" }],
+    }
+
+    const response = Promise.resolve({
+      ok: true,
+      json: () => {
+        return responseBody
+      },
+    })
+    fetch.mockImplementation(() => response)
+  })
+
   describe("Indexing a base template", () => {
     const doc = {
       id: "sinopia:template:property:literal",
       uri: "https://api.development.sinopia.io/resource/sinopia:template:property:literal",
       user: "justinlittman",
       group: "ld4p",
+      groupLabel: "Linked Data 4 Production",
       editGroups: ["stanford"],
       timestamp: "2020-08-27T01:08:54.992Z",
       templateId: "sinopia:template:resource",
@@ -44,7 +62,7 @@ describe("TemplateIndexer", () => {
     }
     it("does not index", async () => {
       const dataset = await datasetFromJsonld(doc.data)
-      expect(new TemplateIndexer(doc, dataset).index()).toBeNull()
+      expect(await new TemplateIndexer(doc, dataset).index()).toBeNull()
     })
   })
 
@@ -122,6 +140,7 @@ describe("TemplateIndexer", () => {
         },
       ],
       group: "ld4p",
+      groupLabel: "Linked Data 4 Production",
       editGroups: ["stanford"],
       types: ["http://sinopia.io/vocabulary/ResourceTemplate"],
       user: "NancyL",
@@ -133,7 +152,7 @@ describe("TemplateIndexer", () => {
 
     it("indexes", async () => {
       const dataset = await datasetFromJsonld(doc.data)
-      expect(new TemplateIndexer(doc, dataset).index()).toEqual({
+      expect(await new TemplateIndexer(doc, dataset).index()).toEqual({
         author: "LD4P",
         date: "2019-08-19",
         id: "ld4p:RT:bf2:Identifiers:Note",
@@ -142,6 +161,7 @@ describe("TemplateIndexer", () => {
         resourceURI: "http://id.loc.gov/ontologies/bibframe/Note",
         uri: "https://api.development.sinopia.io/resource/ld4p:RT:bf2:Identifiers:Note",
         group: "ld4p",
+        groupLabel: "Linked Data 4 Production",
         editGroups: ["stanford"],
       })
     })
@@ -227,7 +247,7 @@ describe("TemplateIndexer", () => {
 
     it("indexes", async () => {
       const dataset = await datasetFromJsonld(doc.data)
-      expect(new TemplateIndexer(doc, dataset).index()).toEqual({
+      expect(await new TemplateIndexer(doc, dataset).index()).toEqual({
         author: "LD4P",
         date: undefined,
         id: "ld4p:RT:bf2:Identifiers:Note",
@@ -236,6 +256,7 @@ describe("TemplateIndexer", () => {
         resourceURI: "http://id.loc.gov/ontologies/bibframe/Note",
         uri: "https://api.development.sinopia.io/resource/ld4p:RT:bf2:Identifiers:Note",
         group: "ld4p",
+        groupLabel: "Linked Data 4 Production",
         editGroups: ["stanford"],
       })
     })
@@ -326,7 +347,7 @@ describe("TemplateIndexer", () => {
 
     it("indexes, ignoring bad date", async () => {
       const dataset = await datasetFromJsonld(doc.data)
-      expect(new TemplateIndexer(doc, dataset).index()).toEqual({
+      expect(await new TemplateIndexer(doc, dataset).index()).toEqual({
         author: "LD4P",
         date: undefined,
         id: "ld4p:RT:bf2:Identifiers:Note",
@@ -335,6 +356,7 @@ describe("TemplateIndexer", () => {
         resourceURI: "http://id.loc.gov/ontologies/bibframe/Note",
         uri: "https://api.development.sinopia.io/resource/ld4p:RT:bf2:Identifiers:Note",
         group: "ld4p",
+        groupLabel: "Linked Data 4 Production",
         editGroups: ["stanford"],
       })
     })
