@@ -147,6 +147,7 @@ describe("TemplateIndexer", () => {
       timestamp: "2020-02-12T23:53:20.905Z",
       templateId: "sinopia:template:resource",
       id: "ld4p:RT:bf2:Identifiers:Note",
+      _id: "617c3e06efce030013d91fc3",
       uri: "https://api.development.sinopia.io/resource/ld4p:RT:bf2:Identifiers:Note",
     }
 
@@ -156,6 +157,7 @@ describe("TemplateIndexer", () => {
         author: "LD4P",
         date: "2019-08-19",
         id: "ld4p:RT:bf2:Identifiers:Note",
+        mongoId: "617c3e06efce030013d91fc3",
         remark: undefined,
         resourceLabel: "Note",
         resourceURI: "http://id.loc.gov/ontologies/bibframe/Note",
