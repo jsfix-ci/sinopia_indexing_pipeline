@@ -30,6 +30,7 @@ export default class {
     this.buildRDFTypes()
     this.indexObject["group"] = this.doc.group
     this.indexObject["editGroups"] = this.doc.editGroups
+    this.indexObject["mongoId"] = this.doc["_id"]
     return this.indexObject
   }
 

@@ -26,6 +26,7 @@ export default class {
     // Don't index base templates (i.e., templates for templates).
     if (resourceId.startsWith("sinopia:template:")) return null
     this.indexObject["id"] = resourceId
+    this.indexObject["mongoId"] = this.doc["_id"]
     this.indexObject["uri"] = this.doc.uri
     this.indexObject["author"] = this.valueFor(
       "http://sinopia.io/vocabulary/hasAuthor"

@@ -32,6 +32,7 @@ describe("ResourceIndexer", () => {
       timestamp: "2020-08-21T22:20:56.893Z",
       templateId: "resourceTemplate:bf2:Title:Note",
       id: "860e40cb-8c63-4014-90f4-4682d25780a8",
+      _id: "617c3e06efce030013d91fc3",
       uri: "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
       editGroups: ["stanford"],
     }
@@ -39,6 +40,7 @@ describe("ResourceIndexer", () => {
     it("indexes", async () => {
       const dataset = await datasetFromJsonld(doc.data)
       expect(await new ResourceIndexer(doc, dataset).index()).toEqual({
+        mongoId: "617c3e06efce030013d91fc3",
         uri: "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
         label: "Brain Matter",
         text: ["resourceTemplate:bf2:Title:Note", "Brain Matter"],
@@ -88,6 +90,7 @@ describe("ResourceIndexer", () => {
       timestamp: "2020-08-21T22:20:56.893Z",
       templateId: "resourceTemplate:bf2:Title:Note",
       id: "860e40cb-8c63-4014-90f4-4682d25780a8",
+      _id: "617c3e06efce030013d91fc3",
       uri: "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
       editGroups: ["stanford"],
     }
@@ -95,6 +98,7 @@ describe("ResourceIndexer", () => {
     it("indexes", async () => {
       const dataset = await datasetFromJsonld(doc.data)
       expect(await new ResourceIndexer(doc, dataset).index()).toEqual({
+        mongoId: "617c3e06efce030013d91fc3",
         uri: "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
         label:
           "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
@@ -131,6 +135,7 @@ describe("ResourceIndexer", () => {
       timestamp: "2020-08-21T22:20:56.893Z",
       templateId: "resourceTemplate:bf2:Title:Note",
       id: "860e40cb-8c63-4014-90f4-4682d25780a8",
+      _id: "617c3e06efce030013d91fc3",
       uri: "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
       editGroups: ["stanford"],
     }
@@ -138,6 +143,7 @@ describe("ResourceIndexer", () => {
     it("indexes", async () => {
       const dataset = await datasetFromJsonld(doc.data)
       expect(await new ResourceIndexer(doc, dataset).index()).toEqual({
+        mongoId: "617c3e06efce030013d91fc3",
         uri: "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
         label:
           "https://api.development.sinopia.io/resource/860e40cb-8c63-4014-90f4-4682d25780a8",
