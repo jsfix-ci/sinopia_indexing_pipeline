@@ -92,36 +92,46 @@ export default class Indexer {
 
   /**
    * Uses client to delete index entry
-   * @param {Object} doc - Document for resource, including resource and headers
+   * @param {String} mongoId - The mongoId of the resource
    * @returns {?boolean} true if successful; null if not
    */
-  async delete(doc) {
-    const uri = `${config.get("uriPrefix")}/${doc.id}`
-
-    const dataset = await datasetFromJsonld(doc.data)
-
-    const resourceType = this.resourceTypeFor(dataset, doc.uri)
-    if (!resourceType) {
-      this.logger.error(`Could not determine resource type for ${doc.uri}`)
-      return false
-    }
-    const index = this.indexes[resourceType]
-    this.logger.debug(`deleting ${uri} from index`)
-
-    return this.client
-      .delete({
-        index,
-        type: config.get("indexType"),
-        id: doc.id,
+  async delete(mongoId) {
+    this.client
+      .search({
+        index: "_all",
+        size: 1,
+        body: {
+          query: {
+            term: {
+              mongoId: mongoId,
+            },
+          },
+        },
       })
-      .then((indexResponse) => {
-        if (!this.knownDeleteResults.includes(indexResponse.result))
-          throw { message: JSON.stringify(indexResponse) }
-        return true
+      .then((result) => {
+        const doc = result.body.hits.hits[0]
+        if (!doc) {
+          console.log(`No documents found with mongoId: ${mongoId}`)
+          return
+        }
+
+        return this.client
+          .delete({
+            index: doc._index,
+            id: doc._id,
+          })
+          .then((indexResponse) => {
+            if (!this.knownDeleteResults.includes(indexResponse.body.result))
+              throw { message: JSON.stringify(indexResponse) }
+            return true
+          })
+          .catch((err) => {
+            this.logger.error(`error deleting: ${err.message}`, err)
+            return false
+          })
       })
       .catch((err) => {
-        this.logger.error(`error deleting: ${err.message}`, err)
-        return false
+        this.logger.error(`error querying for ${mongoId}: ${err.message}`, err)
       })
   }
 

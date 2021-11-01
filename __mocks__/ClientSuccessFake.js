@@ -35,4 +35,14 @@ export default class ClientSuccessFake {
       return resolve({ result: "deleted" })
     })
   }
+
+  search() {
+    return new Promise((resolve, _reject) => {
+      return resolve({
+        body: {
+          hits: { hits: [{ _index: "sinopia_resources", _id: "1231" }] },
+        },
+      })
+    })
+  }
 }
