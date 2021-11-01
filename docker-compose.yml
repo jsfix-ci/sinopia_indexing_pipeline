@@ -3,6 +3,7 @@ services:
   pipeline:
     build:
       context: .
+    image: ld4p/sinopia_indexing_pipeline:latest
     environment:
       INDEX_URL: http://search:9200
       BROKER_HOST: broker
