@@ -87,7 +87,7 @@ describe("Pipeline", () => {
     describe("when handling deletes", () => {
       const message = {
         operationType: "delete",
-        fullDocument: sampleDoc,
+        documentKey: { _id: "617c3e06efce030013d91fc3" },
       }
 
       beforeEach(() => {
@@ -97,7 +97,7 @@ describe("Pipeline", () => {
       it("calls delete on the indexer", () => {
         const indexerSpy = jest.spyOn(pipeline.indexer, "delete")
         pipeline.run(message)
-        expect(indexerSpy).toHaveBeenCalledWith(message.fullDocument)
+        expect(indexerSpy).toHaveBeenCalledWith("617c3e06efce030013d91fc3")
       })
     })
     describe("when handling unsupported operations", () => {

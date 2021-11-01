@@ -17,8 +17,10 @@ export default class Pipeline {
     await this.listener.listen(async (message) => {
       this.logger.debug(`received message: ${JSON.stringify(message)}`)
 
-      if (!["insert", "replace", "delete"].includes(message.operationType))
-        return
+      if (message.operationType === "delete")
+        return this.delete(message.documentKey._id)
+
+      if (!["insert", "replace"].includes(message.operationType)) return
 
       // Need to map ! back to . in keys.
       const doc = replaceInKeys(message.fullDocument, "!", ".")
@@ -37,7 +39,7 @@ export default class Pipeline {
     this.insert(doc)
   }
 
-  delete(doc) {
-    this.indexer.delete(doc)
+  delete(mongoId) {
+    this.indexer.delete(mongoId)
   }
 }
