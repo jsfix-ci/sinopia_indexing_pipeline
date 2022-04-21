@@ -38,9 +38,8 @@ export default class {
     const titles = this.valuesFor([
       "http://id.loc.gov/ontologies/bibframe/mainTitle",
       "http://rdaregistry.info/Elements/w/P10223",
-      "http://rdaregistry.info/Elements/w/P20315",
-      "http://rdaregistry.info/Elements/w/P40085",
-      "http://rdaregistry.info/Elements/w/P30156",
+      "http://rdaregistry.info/Elements/e/P20315",
+      "http://rdaregistry.info/Elements/i/P40085",
       "http://rdaregistry.info/Elements/m/P30156",
     ])
     if (titles.length > 0) this.indexObject["title"] = titles
